@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CameraControl : MonoBehaviour
 {
@@ -56,7 +54,7 @@ public class CameraControl : MonoBehaviour
 		}
 
 
-		float zoom = Input.GetAxis("Mouse ScrollWheel");
+		float zoom = Input.GetAxis("Mouse ScrollWheel") / Time.timeScale;
 		newZoom -= zoom * newZoom * zoomSpeed;
 		newZoom = Mathf.Clamp(newZoom, zoomLimit.x, zoomLimit.y);
 		myCamera.orthographicSize = Mathf.Lerp(myCamera.orthographicSize, newZoom, zoomSpeedLerp);

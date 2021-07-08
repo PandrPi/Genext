@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Entity : MonoBehaviour
+public class Creature : MonoBehaviour
 {
     // Rules:
     // higher movement speed - higher energy loss per step (energy -= speed^2 * energyPerStep)
@@ -18,27 +17,30 @@ public class Entity : MonoBehaviour
     [SerializeField] private float energy; // energy of creature, can be stored by eating food
     [SerializeField] private float energyToReproduce; // how many energy is needed to reproduce
     [SerializeField] private float dieChance; // chance to die after reproduce 
-    [SerializeField] private float viewRadius; // The distance at which food can be notised
+    [SerializeField] private float viewRadius; // The distance at which food can be noticed
 
     // [SerializeField] private List<Food> foodInFieldView = new List<Food>();
 
-    // stores the food object that the entity is moving to
+    // stores the food object that the creature is moving to
     [SerializeField] private Food currentFoodObject;
-    [SerializeField] private Vector2 currentMovementDirection;
     [SerializeField] private float distanceToCurrentFood;
+    [SerializeField] private Food nextFoodObject;
+    [SerializeField] private float distanceToNextFood;
 
-    [SerializeField] private bool isEating; // Entity is not moving while it's true
+    [SerializeField] private Vector2 currentMovementDirection;
+
+    [SerializeField] private bool isEating; // Creature is not moving while it's true
     [SerializeField] private bool isDead;
 
     // determines when the movement direction have to be changed
     private float randomDirectionTimer;
 
-    // When the entity reproduces a child it always has this amount of energy to have a chance to go on living
+    // When the creature reproduces a child it always has this amount of energy to have a chance to go on living
     private float reproduceReserveEnergy;
 
     private Transform myTransform;
     private Rigidbody2D body;
-    private BoxCollider2D viewCollider;
+    private CircleCollider2D viewCollider;
     private SpriteRenderer sr;
 
     private const float ChangeRandomMovementDirectionTimer = 10.0f;
@@ -46,99 +48,85 @@ public class Entity : MonoBehaviour
     private const float EnergyLossPerStep = 0.3f;
     private const float EnergyAmountPerBite = 1.0f;
 
-    // When new entity is created it inherits all the parent's parameters with his own mutation within [-PRR, +PRR] range
+    // When new creature is created it inherits all the parent's parameters with his own mutation within [-PRR, +PRR] range
     private const float MutationRandomRange = 0.15f;
     private const float LowSpeed = 1.0f;
     private static readonly Color LowSpeedColor = Color.HSVToRGB(0.6028f, 0.45f, 1.0f);
     private const float HighSpeed = 20.0f;
     private static readonly Color HighSpeedColor = Color.HSVToRGB(1.0f, 0.45f, 1.0f);
 
-    public void InitializeComponents()
+    /// <summary>
+    /// Initializes Creature's components. This method should be called only after the Creature instance is created.
+    /// </summary>
+    private void InitializeComponents()
     {
         myTransform = transform;
         body = GetComponent<Rigidbody2D>();
         // the second collider must be trigger, it's used to see food objects
-        viewCollider = GetComponents<BoxCollider2D>()[1];
+        viewCollider = GetComponent<CircleCollider2D>();
         sr = GetComponent<SpriteRenderer>();
-        sr.sprite = EntityManager.Manager.GetEntitySprite();
-
-        InitializeEntity();
+        sr.sprite = CreatureManager.Manager.GetCreatureSprite();
     }
 
-    private void FixedUpdate()
+    private void Awake()
+    {
+        InitializeComponents();
+    }
+
+    public void UpdateCreature()
     {
         if (isDead) return;
 
-        if (currentFoodObject == null)
+        Vector3 myTransformPosition = myTransform.position;
+
+        if (currentFoodObject is null)
         {
-            // if (foodInFieldView.Count > 0)
-            //     currentFoodObject = GetNearestFoodObject();
-
-            // if food is not found get random direction and move in that direction
-            if (currentFoodObject == null)
+            randomDirectionTimer += Time.fixedDeltaTime;
+            if (randomDirectionTimer >= ChangeRandomMovementDirectionTimer)
             {
-                randomDirectionTimer += Time.fixedDeltaTime;
-                if (randomDirectionTimer >= ChangeRandomMovementDirectionTimer)
-                {
-                    randomDirectionTimer = 0;
-                    currentMovementDirection = Vector2.zero;
-                }
-
-
-                // if (World.IsInsideEdgeArea(myTransform.position))
-                // {
-                //     RaycastHit2D hit = Physics2D.Raycast(myTransform.position, currentMovementDirection, size * 2);
-                //
-                //     if (hit.transform != null)
-                //     {
-                //         if (hit.transform.CompareTag(World.WorldEdgeTag))
-                //         {
-                //             currentMovementDirection = Vector2.Reflect(currentMovementDirection, hit.normal);
-                //         }
-                //     }
-                // }
-                if (World.IsInsideEdgeArea(myTransform.position) == false)
-                {
-                    Vector2 halfWorldSize = World.Instance.worldSize * 0.5f;
-                    Vector2 position = myTransform.position;
-                    Vector2 normal = position.x > halfWorldSize.x ? Vector2.left : Vector2.zero;
-                    normal = position.x < -halfWorldSize.x ? Vector2.right : normal;
-                    normal = position.x < -halfWorldSize.x ? Vector2.right : normal;
-                    normal = position.y > halfWorldSize.y ? Vector2.down : normal;
-                    normal = position.y < -halfWorldSize.y ? Vector2.up : normal;
-                    currentMovementDirection = Vector2.Reflect(currentMovementDirection, normal);
-                }
-
-                if (currentMovementDirection == Vector2.zero)
-                    currentMovementDirection = Random.insideUnitCircle.normalized;
-
-                MoveAlongDirectionOrEat(currentMovementDirection);
+                randomDirectionTimer = 0;
+                currentMovementDirection = Random.insideUnitCircle.normalized;
+            }
+            
+            if (World.IsInsideEdgeArea(myTransform.position) == false)
+            {
+                Vector2 halfWorldSize = World.Instance.worldSize * 0.5f;
+                Vector2 normal = myTransformPosition.x > halfWorldSize.x ? Vector2.left : Vector2.zero;
+                normal = myTransformPosition.x < -halfWorldSize.x ? Vector2.right : normal;
+                normal = myTransformPosition.x < -halfWorldSize.x ? Vector2.right : normal;
+                normal = myTransformPosition.y > halfWorldSize.y ? Vector2.down : normal;
+                normal = myTransformPosition.y < -halfWorldSize.y ? Vector2.up : normal;
+                currentMovementDirection = Vector2.Reflect(currentMovementDirection, normal);
             }
         }
         else
         {
+            randomDirectionTimer = 0;
+
             Transform nearestFoodTrs = currentFoodObject.transform;
 
-            Vector2 directionNonNormalized = nearestFoodTrs.position - myTransform.position;
-            Vector2 moveDirection = directionNonNormalized.normalized;
-            distanceToCurrentFood = directionNonNormalized.magnitude;
+            Vector2 directionNonNormalized = nearestFoodTrs.position - myTransformPosition;
+            currentMovementDirection = directionNonNormalized.normalized;
+            distanceToCurrentFood = directionNonNormalized.sqrMagnitude;
+            if (nextFoodObject is null == false)
+                distanceToNextFood = (nextFoodObject.transform.position - myTransformPosition).sqrMagnitude;
 
             if (distanceToCurrentFood < currentFoodObject.Size)
             {
                 isEating = true;
                 currentMovementDirection = Vector2.zero;
             }
-
-            MoveAlongDirectionOrEat(moveDirection);
         }
 
-        if (energy <= 0)
+        MoveAlongDirectionOrEat(currentMovementDirection);
+
+        if (energy <= 0.0 && isDead == false)
         {
             isDead = true;
-            EntityManager.Manager.FreeEntity(this);
+            CreatureManager.Manager.FreeCreature(this);
         }
 
-        if (energy >= energyToReproduce + reproduceReserveEnergy)
+        if (energy >= energyToReproduce + reproduceReserveEnergy && isDead == false)
         {
             energy -= energyToReproduce;
             Reproduce();
@@ -146,9 +134,9 @@ public class Entity : MonoBehaviour
     }
 
     /// <summary>
-    /// Initialize entity parameters and apply mutation
+    /// Initializes creature parameters (DNA) and applies mutations to them
     /// </summary>
-    private void InitializeEntity()
+    public void InitializeCreature()
     {
         movementSpeed += MathHelper.RandomValue(movementSpeed * MutationRandomRange);
         size += MathHelper.RandomValue(size * MutationRandomRange);
@@ -159,108 +147,121 @@ public class Entity : MonoBehaviour
         reproduceReserveEnergy = energyToReproduce * EnergyReserveAfterReproduce;
 
         sr.color = Color.Lerp(LowSpeedColor, HighSpeedColor, movementSpeed / (HighSpeed - LowSpeed));
-        viewCollider.size = Vector2.one * viewRadius;
-        Vector3 scale = Vector2.one * size;
-        scale.z = 1;
-        myTransform.localScale = scale;
+        viewCollider.radius = viewRadius;
+        myTransform.localScale = new Vector3(size, size, 1.0f);
+        ;
         distanceToCurrentFood = float.MaxValue;
+        distanceToNextFood = float.MaxValue;
+        isDead = false;
     }
 
-
-    private void Reproduce()
+    /// <summary>
+    /// Creates a child of the current creature. This child inherits parent's parameters and applies his own mutation
+    /// to them.
+    /// </summary>
+    public void Reproduce()
     {
-        Entity entity = EntityManager.Manager.GetEntity(null);
-        entity.movementSpeed = movementSpeed;
-        entity.size = size;
-        entity.energy = energy;
-        entity.energyToReproduce = energyToReproduce;
-        entity.dieChance = dieChance;
-        entity.viewRadius = viewRadius;
-        entity.isDead = false;
+        Creature creature = CreatureManager.Manager.GetCreature(null);
+        creature.movementSpeed = movementSpeed;
+        creature.size = size;
+        creature.energy = energy;
+        creature.energyToReproduce = energyToReproduce;
+        creature.dieChance = dieChance;
+        creature.viewRadius = viewRadius;
+        creature.isDead = false;
 
-        entity.transform.position = myTransform.position;
-        entity.InitializeComponents();
+        creature.transform.position = myTransform.position;
+        creature.InitializeCreature();
 
+        // Creature has chance to die after reproduction process
         if (Random.value < dieChance)
         {
             energy = float.MinValue;
         }
     }
 
+    /// <summary>
+    /// Swaps the current food object with the next food object
+    /// </summary>
+    private void SwapFoodObjects()
+    {
+        distanceToCurrentFood = distanceToNextFood;
+        currentFoodObject = nextFoodObject;
+        distanceToNextFood = float.MaxValue;
+        nextFoodObject = null;
+    }
+
+    /// <summary>
+    /// This method is used to move the creature or to eat energy from the current food object
+    /// </summary>
+    /// <param name="direction"></param>
     private void MoveAlongDirectionOrEat(Vector2 direction)
     {
         if (isEating == false)
         {
+            if (direction == Vector2.zero) currentMovementDirection = Random.insideUnitCircle.normalized;
+
             Vector2 position = myTransform.position;
             body.MovePosition(position + direction * (movementSpeed * Time.fixedDeltaTime));
             energy -= (size * size + movementSpeed) * EnergyLossPerStep;
         }
         else
         {
+            if (currentFoodObject is null)
+            {
+                SwapFoodObjects();
+                return;
+            }
+
             float eatenEnergy = currentFoodObject.EatMe(EnergyAmountPerBite * size * size);
             energy += eatenEnergy;
 
             if (eatenEnergy == 0)
             {
                 isEating = false;
-                currentFoodObject = null;
-                distanceToCurrentFood = float.MaxValue;
+                SwapFoodObjects();
             }
         }
     }
 
+    /// <summary>
+    /// This method is used when the food object enters the field of view of the creature. It determines whether
+    /// the entered food object should me set as currentFoodObject or nextFoodObject
+    /// </summary>
+    /// <param name="collision"></param>
+    private void MarkFoodAsNoticed(Collider2D collision)
+    {
+        float currentDistance = (collision.transform.position - myTransform.position).sqrMagnitude;
 
-    // /// <summary>
-    // /// Returns nearest food object in view radius
-    // /// </summary>
-    // /// <returns></returns>
-    // private Food GetNearestFoodObject()
-    // {
-    //     float minDistance = float.MaxValue;
-    //     int minIndex = -1;
-    //     for (int i = 0; i < foodInFieldView.Count; i++)
-    //     {
-    //         // use sqrMagnitude because it's faster
-    //         float currentDistance = (foodInFieldView[i].transform.position - myTransform.position).sqrMagnitude;
-    //         if (currentDistance < minDistance)
-    //         {
-    //             minDistance = currentDistance;
-    //             minIndex = i;
-    //         }
-    //     }
-    //
-    //     return minIndex != -1 ? foodInFieldView[minIndex] : null;
-    // }
-
+        if (currentDistance < distanceToCurrentFood)
+        {
+            currentFoodObject = collision.GetComponent<Food>();
+            if (currentFoodObject is null)
+            {
+                SwapFoodObjects();
+            }
+        }
+        else if (currentDistance < distanceToNextFood)
+        {
+            nextFoodObject = collision.GetComponent<Food>();
+        }
+    }
 
     /// <summary>
-    /// Is called when new food object enters field of view
+    /// This method is called when food object enters the field of view of the creature
     /// </summary>
     /// <param name="collision"></param>
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Food food = collision.GetComponent<Food>();
-        // if (food != null)
-        // {
-        //     foodInFieldView.Add(food);
-        // }
-        float currentDistance = (collision.transform.position - myTransform.position).magnitude;
-        if (currentDistance < distanceToCurrentFood)
-        {
-            currentFoodObject = collision.GetComponent<Food>();
-        }
+        MarkFoodAsNoticed(collision);
     }
 
-    // /// <summary>
-    // /// Is called when food object exits field of view
-    // /// </summary>
-    // /// <param name="collision"></param>
-    // private void OnTriggerExit2D(Collider2D collision)
-    // {
-    //     Food food = collision.GetComponent<Food>();
-    //     if (food != null)
-    //     {
-    //         foodInFieldView.Remove(food);
-    //     }
-    // }
+    /// <summary>
+    /// This method is called when food object exits the field of view of the creature
+    /// </summary>
+    /// <param name="collision"></param>
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        MarkFoodAsNoticed(collision);
+    }
 }

@@ -10,10 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 3124887182287657784}
   - component: {fileID: 3124887182287657791}
-  - component: {fileID: 6734753042567218192}
-  - component: {fileID: 3124887182287657785}
   - component: {fileID: 3124887182287657764}
   - component: {fileID: 3124887182287657787}
+  - component: {fileID: 2965151261827154288}
   m_Layer: 9
   m_Name: Creature
   m_TagString: Untagged
@@ -74,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 1ceb588f3d741454e95edd952b751f33, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 0.55, g: 0.72249997, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -82,41 +81,9 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!58 &6734753042567218192
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3124887182287657790}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.3
---- !u!58 &3124887182287657785
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3124887182287657790}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 10
 --- !u!50 &3124887182287657764
 Rigidbody2D:
   serializedVersion: 4
@@ -154,11 +121,26 @@ MonoBehaviour:
   size: 1
   energy: 2000
   energyToReproduce: 3000
-  energyAmountPerBite: 1
   dieChance: 0.2
   viewRadius: 3
-  foodInFieldView: []
   currentFoodObject: {fileID: 0}
-  currentRandomDirection: {x: 0, y: 0}
+  currentMovementDirection: {x: 0, y: 0}
+  distanceToCurrentFood: 0
   isEating: 0
   isDead: 0
+--- !u!58 &2965151261827154288
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3124887182287657790}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 10

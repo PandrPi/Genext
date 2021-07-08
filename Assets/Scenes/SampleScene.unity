@@ -396,17 +396,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86f9d7cc62a2ca48a8283c49136bfc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldSize: {x: 128, y: 64}
-  worldFoodCount: 2048
+  worldSize: {x: 192, y: 192}
+  worldFoodCount: 4096
   foodRandomOffset: 0.3
   foodManager:
     foodPrefab: {fileID: 2717043675078268512, guid: 4b18f5b2ae3f27a44863a457c4e762a7,
       type: 3}
-  entityManager:
-    entityPrefab: {fileID: 3124887182287657790, guid: 0b713c49cc39f064cb037a54e7743a2c,
+  creatureManager:
+    creaturePrefab: {fileID: 3124887182287657790, guid: 0b713c49cc39f064cb037a54e7743a2c,
       type: 3}
-    numberOfPrecreatedEntities: 350
-    numberOfLivingEntities: 0
+    creatureSprite: {fileID: 21300000, guid: 1ceb588f3d741454e95edd952b751f33, type: 3}
+    numberOfPreparedCreatures: 500
+    numberOfLivingCreatures: 0
 --- !u!4 &989813797
 Transform:
   m_ObjectHideFlags: 0
@@ -464,7 +465,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1594977275}
   m_Layer: 0
-  m_Name: Free Entities Container
+  m_Name: Free Creatures Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -525,7 +526,7 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
+  serializedVersion: 4
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}

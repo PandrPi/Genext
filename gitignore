@@ -1,4 +1,4 @@
-/.vs/
-.idea/*
+.vs/
+.idea/
 Library/
-Logs/*
+Logs/

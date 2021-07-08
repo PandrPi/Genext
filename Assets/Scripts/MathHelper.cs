@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Runtime.CompilerServices;
 using System.Numerics;
 
@@ -17,7 +15,7 @@ public class MathHelper
 	}
 
 	/// <summary>
-	/// Returns random value in needed range
+	/// Returns random value in desired range
 	/// </summary>
 	/// <param name="range">Range of random value</param>
 	/// <returns></returns>
