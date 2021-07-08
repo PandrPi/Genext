@@ -1,5 +1,6 @@
 .vs/*
 .idea/*
 .idea/
+/.idea/*
 Library/*
 Logs/*
