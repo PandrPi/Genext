@@ -61,69 +61,28 @@
      <Compile Include="Assets\Scripts\Creatures\Creature.cs" />
      <Compile Include="Assets\Scripts\Food\Food.cs" />
      <Compile Include="Assets\Scripts\Food\FoodComponent.cs" />
-     <Compile Include="Assets\Scripts\Food\FoodJob.cs" />
+     <Compile Include="Assets\Scripts\Food\FoodUpdateJob.cs" />
      <Compile Include="Assets\Scripts\Managers\CreatureManager.cs" />
      <Compile Include="Assets\Scripts\Managers\FoodManager.cs" />
      <Compile Include="Assets\Scripts\Managers\UIManager.cs" />
      <Compile Include="Assets\Scripts\MathHelper.cs" />
      <Compile Include="Assets\Scripts\Player\CameraControl.cs" />
      <Compile Include="Assets\Scripts\World\World.cs" />
+     <None Include="Assets\Resources\Shaders\SpriteShaderECS.shader" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Burst">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Burst.dll</HintPath>
- </Reference>
- <Reference Include="Unity.VSCode.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Burst.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Burst.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.TextMeshPro.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.UI">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Timeline">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
- </Reference>
- <Reference Include="Unity.CollabProxy.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Postprocessing.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Postprocessing.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Rider.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Mathematics">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
- </Reference>
- <Reference Include="Unity.2D.Sprite.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.2D.Sprite.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Postprocessing.Runtime">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Postprocessing.Runtime.dll</HintPath>
- </Reference>
- <Reference Include="Unity.2D.Tilemap.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.2D.Tilemap.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Mathematics.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Mathematics.Editor.dll</HintPath>
- </Reference>
- <Reference Include="Unity.TextMeshPro">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
- </Reference>
- <Reference Include="UnityEditor.UI">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.CacheServer">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/UnityEditor.CacheServer.dll</HintPath>
  </Reference>
  <Reference Include="Unity.ScriptableBuildPipeline.Editor">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Burst">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Burst.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.VSCode.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.VSCode.Editor.dll</HintPath>
  </Reference>
  <Reference Include="Unity.Jobs">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Jobs.dll</HintPath>
@@ -133,6 +92,9 @@
  </Reference>
  <Reference Include="Unity.Entities.Editor">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Burst.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Burst.Editor.dll</HintPath>
  </Reference>
  <Reference Include="Unity.Collections">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Collections.dll</HintPath>
@@ -152,8 +114,14 @@
  <Reference Include="Unity.Scenes.Editor">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Scenes.Editor.dll</HintPath>
  </Reference>
+ <Reference Include="Unity.TextMeshPro.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
+ </Reference>
  <Reference Include="Unity.Mathematics.Extensions">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Mathematics.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEngine.UI">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/UnityEngine.UI.dll</HintPath>
  </Reference>
  <Reference Include="Unity.Searcher.Editor">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Searcher.Editor.dll</HintPath>
@@ -161,11 +129,29 @@
  <Reference Include="Unity.Mathematics.Extensions.Hybrid">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
  </Reference>
+ <Reference Include="Unity.Timeline">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Rendering.Hybrid">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Rendering.Hybrid.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.CollabProxy.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.CollabProxy.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Postprocessing.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Postprocessing.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Rendering.Hybrid.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Rendering.Hybrid.Editor.dll</HintPath>
+ </Reference>
  <Reference Include="Unity.Entities.BuildUtils">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.BuildUtils.dll</HintPath>
  </Reference>
  <Reference Include="Unity.Serialization">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Serialization.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Rider.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Rider.Editor.dll</HintPath>
  </Reference>
  <Reference Include="Unity.Entities.Hybrid.EndToEnd.Tests">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.Hybrid.EndToEnd.Tests.dll</HintPath>
@@ -173,11 +159,23 @@
  <Reference Include="Unity.Entities.Hybrid">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.Hybrid.dll</HintPath>
  </Reference>
+ <Reference Include="Unity.Mathematics">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
+ </Reference>
  <Reference Include="Unity.Deformations">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Deformations.dll</HintPath>
  </Reference>
+ <Reference Include="Unity.2D.Sprite.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.2D.Sprite.Editor.dll</HintPath>
+ </Reference>
  <Reference Include="Unity.Properties.UI.Editor">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Properties.UI.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Postprocessing.Runtime">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Postprocessing.Runtime.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.2D.Tilemap.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.2D.Tilemap.Editor.dll</HintPath>
  </Reference>
  <Reference Include="Unity.Entities">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.dll</HintPath>
@@ -191,14 +189,17 @@
  <Reference Include="Unity.ScriptableBuildPipeline">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.dll</HintPath>
  </Reference>
+ <Reference Include="Unity.Mathematics.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Mathematics.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.TextMeshPro">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.TextMeshPro.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.UI">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+ </Reference>
  <Reference Include="Unity.Transforms.Hybrid">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Transforms.Hybrid.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Rendering.Hybrid">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Rendering.Hybrid.dll</HintPath>
- </Reference>
- <Reference Include="Unity.Rendering.Hybrid.Editor">
- <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Rendering.Hybrid.Editor.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.AIModule">
  <HintPath>E:/Unity/2019.4.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>

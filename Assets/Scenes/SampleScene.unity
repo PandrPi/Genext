@@ -400,6 +400,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: World
       objectReference: {fileID: 0}
+    - target: {fileID: 1468672546799635782, guid: 74e6483b6a94ea5459e62f95a03c114b,
+        type: 3}
+      propertyPath: foodManager.foodMesh
+      value: 
+      objectReference: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
+    - target: {fileID: 1468672546799635782, guid: 74e6483b6a94ea5459e62f95a03c114b,
+        type: 3}
+      propertyPath: foodManager.foodMaterial
+      value: 
+      objectReference: {fileID: 2100000, guid: 0e7478d3adaf25e4d8546f31d94e929c, type: 2}
     - target: {fileID: 1468672546799635783, guid: 74e6483b6a94ea5459e62f95a03c114b,
         type: 3}
       propertyPath: m_LocalPosition.x

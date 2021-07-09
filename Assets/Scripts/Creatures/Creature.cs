@@ -9,8 +9,6 @@ public class Creature : MonoBehaviour
     // higher movement speed - higher energy loss per step (energy -= speed^2 * energyPerStep)
     // higher size - higher energy loss per step, but higher energyAmountPerBite ()
     // higher viewRadius - higher chance to notice food
-    //
-
 
     [SerializeField] private float movementSpeed; // movement speed of creature
     [SerializeField] private float size; // size of creature
@@ -87,7 +85,7 @@ public class Creature : MonoBehaviour
                 randomDirectionTimer = 0;
                 currentMovementDirection = Random.insideUnitCircle.normalized;
             }
-            
+
             if (World.IsInsideEdgeArea(myTransform.position) == false)
             {
                 Vector2 halfWorldSize = World.Instance.worldSize * 0.5f;
@@ -149,7 +147,6 @@ public class Creature : MonoBehaviour
         sr.color = Color.Lerp(LowSpeedColor, HighSpeedColor, movementSpeed / (HighSpeed - LowSpeed));
         viewCollider.radius = viewRadius;
         myTransform.localScale = new Vector3(size, size, 1.0f);
-        ;
         distanceToCurrentFood = float.MaxValue;
         distanceToNextFood = float.MaxValue;
         isDead = false;
@@ -159,7 +156,7 @@ public class Creature : MonoBehaviour
     /// Creates a child of the current creature. This child inherits parent's parameters and applies his own mutation
     /// to them.
     /// </summary>
-    public void Reproduce()
+    public void Reproduce(bool isNewEpoch = false)
     {
         Creature creature = CreatureManager.Manager.GetCreature(null);
         creature.movementSpeed = movementSpeed;
@@ -170,11 +167,11 @@ public class Creature : MonoBehaviour
         creature.viewRadius = viewRadius;
         creature.isDead = false;
 
-        creature.transform.position = myTransform.position;
+        creature.transform.position = isNewEpoch ? Vector3.zero : myTransform.position;
         creature.InitializeCreature();
 
         // Creature has chance to die after reproduction process
-        if (Random.value < dieChance)
+        if (Random.value < dieChance && isNewEpoch == false)
         {
             energy = float.MinValue;
         }
