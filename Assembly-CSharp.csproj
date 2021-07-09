@@ -58,13 +58,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Entities\Creature.cs" />
+     <Compile Include="Assets\Scripts\Creatures\Creature.cs" />
      <Compile Include="Assets\Scripts\Food\Food.cs" />
      <Compile Include="Assets\Scripts\Food\FoodComponent.cs" />
      <Compile Include="Assets\Scripts\Food\FoodJob.cs" />
      <Compile Include="Assets\Scripts\Managers\CreatureManager.cs" />
      <Compile Include="Assets\Scripts\Managers\FoodManager.cs" />
-     <Compile Include="Assets\Scripts\Managers\InterfaceManager.cs" />
+     <Compile Include="Assets\Scripts\Managers\UIManager.cs" />
      <Compile Include="Assets\Scripts\MathHelper.cs" />
      <Compile Include="Assets\Scripts\Player\CameraControl.cs" />
      <Compile Include="Assets\Scripts\World\World.cs" />
@@ -118,6 +118,87 @@
  </Reference>
  <Reference Include="UnityEditor.UI">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/UnityEditor.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.CacheServer">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/UnityEditor.CacheServer.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.ScriptableBuildPipeline.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Jobs">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Jobs.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Jobs.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Jobs.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Entities.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Collections">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Collections.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Properties.UI">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Properties.UI.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Serialization.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Serialization.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Properties">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Properties.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Scenes.Hybrid">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Scenes.Hybrid.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Scenes.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Scenes.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Mathematics.Extensions">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Mathematics.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Searcher.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Searcher.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Mathematics.Extensions.Hybrid">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Mathematics.Extensions.Hybrid.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Entities.BuildUtils">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.BuildUtils.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Serialization">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Serialization.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Entities.Hybrid.EndToEnd.Tests">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.Hybrid.EndToEnd.Tests.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Entities.Hybrid">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.Hybrid.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Deformations">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Deformations.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Properties.UI.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Properties.UI.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Entities">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Entities.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Transforms">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Transforms.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Transforms.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Transforms.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.ScriptableBuildPipeline">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.ScriptableBuildPipeline.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Transforms.Hybrid">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Transforms.Hybrid.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Rendering.Hybrid">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Rendering.Hybrid.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Rendering.Hybrid.Editor">
+ <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Rendering.Hybrid.Editor.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.AIModule">
  <HintPath>E:/Unity/2019.4.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.AIModule.dll</HintPath>
@@ -297,7 +378,13 @@
  <HintPath>E:/Unity/2019.4.2f1/Editor/Data/Managed/UnityEngine/UnityEngine.XRModule.dll</HintPath>
  </Reference>
  <Reference Include="Unity.Burst.Unsafe">
- <HintPath>E:/Unity Projects/Genext/Library/PackageCache/com.unity.burst@1.2.3/Unity.Burst.Unsafe.dll</HintPath>
+ <HintPath>E:/Unity Projects/Genext/Library/PackageCache/com.unity.burst@1.3.0-preview.12/Unity.Burst.Unsafe.dll</HintPath>
+ </Reference>
+ <Reference Include="System.Runtime.CompilerServices.Unsafe">
+ <HintPath>E:/Unity Projects/Genext/Library/PackageCache/com.unity.collections@0.9.0-preview.6/System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+ </Reference>
+ <Reference Include="Newtonsoft.Json">
+ <HintPath>E:/Unity Projects/Genext/Library/PackageCache/com.unity.nuget.newtonsoft-json@2.0.0-preview/Runtime/Newtonsoft.Json.dll</HintPath>
  </Reference>
  <Reference Include="netstandard">
  <HintPath>E:/Unity/2019.4.2f1/Editor/Data/NetStandard/ref/2.0.0/netstandard.dll</HintPath>

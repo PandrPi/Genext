@@ -49,7 +49,7 @@ public class CreatureManager
 		creature.gameObject.SetActive(false);
 		creaturesPool.Enqueue(creature);
 		numberOfLivingCreatures--;
-		InterfaceManager.manager.SetPopulationNumberText(numberOfLivingCreatures);
+		UIManager.Manager.SetPopulationNumberText(numberOfLivingCreatures);
 		activeCreatures.Remove(creature);
 
 		if (numberOfLivingCreatures != 0) return;
@@ -78,7 +78,7 @@ public class CreatureManager
 		activeCreatures.Add(creature);
 		creature.gameObject.SetActive(true);
 		numberOfLivingCreatures++;
-		InterfaceManager.manager.SetPopulationNumberText(numberOfLivingCreatures);
+		UIManager.Manager.SetPopulationNumberText(numberOfLivingCreatures);
 
 		return creature;
 	}

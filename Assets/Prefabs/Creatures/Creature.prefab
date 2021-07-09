@@ -72,7 +72,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 0}
   m_Color: {r: 0.55, g: 0.72249997, b: 1, a: 1}
   m_FlipX: 0
@@ -124,8 +124,10 @@ MonoBehaviour:
   dieChance: 0.2
   viewRadius: 3
   currentFoodObject: {fileID: 0}
-  currentMovementDirection: {x: 0, y: 0}
   distanceToCurrentFood: 0
+  nextFoodObject: {fileID: 0}
+  distanceToNextFood: 0
+  currentMovementDirection: {x: 0, y: 0}
   isEating: 0
   isDead: 0
 --- !u!58 &2965151261827154288

@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class Food : MonoBehaviour
 {
-    public float Size = 3;
-    [SerializeField] private float Energy = 20;
+    public float size = 3;
+    [SerializeField] private float energy = 20;
 
     private Transform myTransform;
     private SpriteRenderer sr;
@@ -20,20 +20,8 @@ public class Food : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         circleCollider = GetComponent<CircleCollider2D>();
         Regrowth();
-        Size = sr.bounds.size.x;
+        size = sr.bounds.size.x;
     }
-
-    // private void FixedUpdate()
-    // {
-    //     // if (Time.frameCount % FramesToSkip != 0) return;
-    //     // if (isDead != true) return;
-    //     //
-    //     // RegrowthTimer += Time.fixedDeltaTime * FramesToSkip;
-    //     // if (RegrowthTimer >= TimeToRegrowth)
-    //     // {
-    //     //     Regrowth();
-    //     // }
-    // }
 
     private IEnumerator StartRegrowthTimer()
     {
@@ -45,7 +33,7 @@ public class Food : MonoBehaviour
     private void Regrowth()
     {
         myTransform.position = FoodManager.Manager.GetRandomWorldPosition();
-        Energy = InitialEnergy + MathHelper.RandomValue(InitialEnergy * ParameterRandomRange);
+        energy = InitialEnergy + MathHelper.RandomValue(InitialEnergy * ParameterRandomRange);
         sr.enabled = true;
         circleCollider.enabled = true;
     }
@@ -63,9 +51,9 @@ public class Food : MonoBehaviour
     /// <returns></returns>
     public float EatMe(float energyPerBite)
     {
-        if (Energy <= 0)
+        if (energy <= 0)
         {
-            Energy = 0;
+            energy = 0;
             sr.enabled = false;
             circleCollider.enabled = false;
 
@@ -74,14 +62,14 @@ public class Food : MonoBehaviour
             return 0;
         }
 
-        if (Energy < energyPerBite)
+        if (energy < energyPerBite)
         {
-            float temp = Energy;
-            Energy = 0;
+            float temp = energy;
+            energy = 0;
             return temp;
         }
 
-        Energy -= energyPerBite;
+        energy -= energyPerBite;
         return energyPerBite;
     }
 }

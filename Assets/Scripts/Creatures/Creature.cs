@@ -111,7 +111,7 @@ public class Creature : MonoBehaviour
             if (nextFoodObject is null == false)
                 distanceToNextFood = (nextFoodObject.transform.position - myTransformPosition).sqrMagnitude;
 
-            if (distanceToCurrentFood < currentFoodObject.Size)
+            if (distanceToCurrentFood < currentFoodObject.size)
             {
                 isEating = true;
                 currentMovementDirection = Vector2.zero;
