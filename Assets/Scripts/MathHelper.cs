@@ -25,6 +25,17 @@ public class MathHelper
 		return (Random.value * range * 2.0f) - range;
 	}
 
+	/// <summary>
+	/// Calculates and returns the mutated value
+	/// </summary>
+	/// <param name="value">Original value</param>
+	/// <param name="mutationRange">Mutation range</param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static float GetMutatedValue(float value, float mutationRange)
+	{
+		return value + RandomValue(value * mutationRange);
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static float GetAverage(float[] array)
 	{

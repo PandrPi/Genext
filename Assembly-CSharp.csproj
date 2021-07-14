@@ -58,16 +58,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Creatures\Creature.cs" />
-     <Compile Include="Assets\Scripts\Food\Food.cs" />
-     <Compile Include="Assets\Scripts\Food\FoodComponent.cs" />
-     <Compile Include="Assets\Scripts\Food\FoodUpdateJob.cs" />
-     <Compile Include="Assets\Scripts\Managers\CreatureManager.cs" />
-     <Compile Include="Assets\Scripts\Managers\FoodManager.cs" />
+     <Compile Include="Assets\Scripts\Creatures\CreatureComponent.cs" />
+     <Compile Include="Assets\Scripts\Creatures\CreatureUpdateJob.cs" />
+     <Compile Include="Assets\Scripts\Foods\FoodComponent.cs" />
+     <Compile Include="Assets\Scripts\Foods\FoodUpdateJob.cs" />
+     <Compile Include="Assets\Scripts\General\World.cs" />
+     <Compile Include="Assets\Scripts\Managers\CreatureManagementSystem.cs" />
+     <Compile Include="Assets\Scripts\Managers\FoodManagementSystem.cs" />
      <Compile Include="Assets\Scripts\Managers\UIManager.cs" />
      <Compile Include="Assets\Scripts\MathHelper.cs" />
      <Compile Include="Assets\Scripts\Player\CameraControl.cs" />
-     <Compile Include="Assets\Scripts\World\World.cs" />
      <None Include="Assets\Resources\Shaders\SpriteShaderECS.shader" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>

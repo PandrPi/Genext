@@ -1,81 +1,97 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using General;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+namespace Managers
 {
-	public static UIManager Manager;
-	[SerializeField] private Slider timeFactorSlider;
-	[SerializeField] private Text timeFactorText;
-	[SerializeField] private Text populationNumberText;
-	[SerializeField] private Button pauseOrPlayButton;
-	[SerializeField] private Text pauseOrPlayButtonText;
+    public class UIManager : MonoBehaviour
+    {
+        public static UIManager Instance;
+        [SerializeField] private Slider timeFactorSlider;
+        [SerializeField] private Text timeFactorText;
+        [SerializeField] private Text populationNumberText;
+        [SerializeField] private Button pauseOrPlayButton;
+        [SerializeField] private Text pauseOrPlayButtonText;
 
-	[Header("Statistics")]
-	[SerializeField] private Text averageSpeedText;
-	[SerializeField] private Text averageSizeText;
-	[SerializeField] private Text averageEnergyText;
-	[SerializeField] private Text averageEnergyToRPText;
-	[SerializeField] private Text averageEnergyPBText;
-	[SerializeField] private Text averageDieChanceText;
-	[SerializeField] private Text averageViewRadiusText;
+        [Header("Statistics"), SerializeField] private Text averageSpeedText;
+        [SerializeField] private Text averageSizeText;
+        [SerializeField] private Text averageEnergyText;
+        [SerializeField] private Text averageEnergyToRPText;
+        [SerializeField] private Text averageEnergyPBText;
+        [SerializeField] private Text averageDieChanceText;
+        [SerializeField] private Text averageViewRadiusText;
 
-	private const string PauseSimulationText = "S";
-	private const string PlaySimulationText = "P";
-	private static readonly Vector2 PlaySimulationTextOffset = new Vector2(5, 0);
-	private static readonly Vector2 PauseSimulationTextOffset = new Vector2(0.8f, 0);
-	
-	private void Awake()
-	{
-		Manager = this;
+        [Header("Simulation time"), SerializeField]
+        private Text simulationTimeText;
 
-		timeFactorSlider.onValueChanged.AddListener(SetTimeFactor);
-		pauseOrPlayButton.onClick.AddListener(PauseOrPlaySimulation);
-	}
-	
-	/// <summary>
-	/// Starts or stops the simulation
-	/// </summary>
-	private void PauseOrPlaySimulation()
-	{
-		// If time factor is not equal to zero the simulation is playing
-		bool isSimulationPlaying = timeFactorSlider.value != 0.0f;
-		// If simulation is playing we need to pause it and vise versa
-		SetTimeFactor(isSimulationPlaying ? 0.0f : 1.0f);
-		timeFactorSlider.value = isSimulationPlaying ? 0.0f : 1.0f;
-	}
+        private const string PauseSimulationText = "S";
+        private const string PlaySimulationText = "P";
+        private const string SimulationTimeFormat = "Food Instance: {0} ms; Creature Instance: {1} ms";
+        private static readonly Vector2 PlaySimulationTextOffset = new Vector2(5, 0);
+        private static readonly Vector2 PauseSimulationTextOffset = new Vector2(0.8f, 0);
 
-	private void SetPauseOrPlayButtonText(float timeFactor)
-	{
-		// If time factor is not equal to zero the simulation is playing
-		bool isSimulationPlaying = timeFactorSlider.value != 0.0f;
-		// Set button text and offset depending on isSimulationPlaying boolean
-		pauseOrPlayButtonText.text = isSimulationPlaying ? PlaySimulationText : PauseSimulationText;
-		Vector2 anchoredPosition = isSimulationPlaying ? PlaySimulationTextOffset : PauseSimulationTextOffset;
-		pauseOrPlayButtonText.rectTransform.anchoredPosition = anchoredPosition;
-	}
-	
-	/// <summary>
-	/// Sets the disired time factor for settings and UI
-	/// </summary>
-	/// <param name="value"></param>
-	private void SetTimeFactor(float value)
-	{
-		Time.timeScale = math.max(1.0f, value);
-		World.Instance.SetIsSimulationPlaying(value != 0.0f);
-		SetPauseOrPlayButtonText(value);
+        private void Awake()
+        {
+            Instance = this;
 
-		timeFactorText.text = $"Time factor - {value}x";
-	}
-	
-	/// <summary>
-	/// Updates the population UI text with the specified number
-	/// </summary>
-	/// <param name="number">Population number</param>
-	public void SetPopulationNumberText(int number)
-	{
-		populationNumberText.text = number.ToString();
-	}
+            timeFactorSlider.onValueChanged.AddListener(SetTimeFactor);
+            pauseOrPlayButton.onClick.AddListener(PauseOrPlaySimulation);
+        }
+
+        /// <summary>
+        /// Starts or stops the simulation
+        /// </summary>
+        private void PauseOrPlaySimulation()
+        {
+            // If time factor is not equal to zero the simulation is playing
+            bool isSimulationPlaying = timeFactorSlider.value != 0.0f;
+            // If simulation is playing we need to pause it and vise versa
+            SetTimeFactor(isSimulationPlaying ? 0.0f : 1.0f);
+            timeFactorSlider.value = isSimulationPlaying ? 0.0f : 1.0f;
+        }
+
+        private void SetPauseOrPlayButtonText()
+        {
+            // If time factor is not equal to zero the simulation is playing
+            bool isSimulationPlaying = timeFactorSlider.value != 0.0f;
+            // Set button text and offset depending on isSimulationPlaying boolean
+            pauseOrPlayButtonText.text = isSimulationPlaying ? PlaySimulationText : PauseSimulationText;
+            Vector2 anchoredPosition = isSimulationPlaying ? PlaySimulationTextOffset : PauseSimulationTextOffset;
+            pauseOrPlayButtonText.rectTransform.anchoredPosition = anchoredPosition;
+        }
+
+        /// <summary>
+        /// Sets the disired time factor for settings and UI
+        /// </summary>
+        /// <param name="value"></param>
+        private void SetTimeFactor(float value)
+        {
+            World.Instance.SetSimulationTimeFactor((int) value);
+            SetPauseOrPlayButtonText();
+
+            timeFactorText.text = $"Time factor - {value}x";
+        }
+
+        /// <summary>
+        /// Updates the population UI text with the specified number
+        /// </summary>
+        /// <param name="number">Population number</param>
+        public void SetPopulationNumberText(int number)
+        {
+            populationNumberText.text = number.ToString();
+        }
+
+        public void SetSimulationManagersTime(float foodManagerTime, float creatureManagerTime)
+        {
+            const float conversionMultiplier = 1000.0f;
+            const int roundToDigits = 3;
+            // Multiply numbers by 1000f to convert them from seconds to ms and round them to only 3 digits
+            foodManagerTime = (float) Math.Round(foodManagerTime * conversionMultiplier, roundToDigits);
+            creatureManagerTime = (float) Math.Round(creatureManagerTime * conversionMultiplier, roundToDigits);
+
+            simulationTimeText.text = string.Format(SimulationTimeFormat, foodManagerTime, creatureManagerTime);
+        }
+    }
 }
