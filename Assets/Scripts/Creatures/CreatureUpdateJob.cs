@@ -14,7 +14,8 @@ namespace Creatures
         public ArchetypeChunkComponentType<CreatureComponent> CreatureType;
         public ArchetypeChunkComponentType<Translation> TranslationType;
 
-        public NativeArray<FoodTracker> FoodTrackersArray;
+        [NativeDisableParallelForRestriction] public NativeArray<FoodTracker> FoodTrackersArray;
+        // public NativeArray<FoodTracker> FoodTrackersArray;
 
         [WriteOnly] public NativeQueue<Entity>.ParallelWriter CreaturesToReproduce;
         [WriteOnly] public NativeQueue<Entity>.ParallelWriter CreaturesToFree;
@@ -42,39 +43,34 @@ namespace Creatures
                 if (creature.IsDead) continue;
 
                 // Most of creature logic is here
-                FoodTracker closestFood;
+                FoodTracker closestFood = default;
                 float closestDistance = creature.ViewRadius * creature.ViewRadius;
                 float3 creaturePosition = translation.Value;
-
-                // If our creature has no target
-                if (creature.TargetID == 0)
+                
+                // check the current quadrant and its neighbours for the closest food
+                for (var x = creaturePosition.x - CellSize; x <= creaturePosition.x + CellSize; x += CellSize)
                 {
-                    closestFood = default;
-                    // check the current quadrant and its neighbours for the closest food
-                    for (var x = creaturePosition.x - CellSize; x <= creaturePosition.x + CellSize; x += CellSize)
+                    for (var y = creaturePosition.y - CellSize; y <= creaturePosition.y + CellSize; y += CellSize)
                     {
-                        for (var y = creaturePosition.y - CellSize; y <= creaturePosition.y + CellSize; y += CellSize)
-                        {
-                            var positionForQuadrant = new float2(x, y);
-                            FindClosestFood(creaturePosition.xy, positionForQuadrant, creature.ID, ref closestDistance,
-                                ref closestFood);
-                        }
+                        var positionForQuadrant = new float2(x, y);
+                        FindClosestFood(creaturePosition.xy, positionForQuadrant, creature.ID, ref closestDistance,
+                            ref closestFood);
                     }
                 }
-                else
+                
+                // When our current food object is not the previous food object we have to release the previous food
+                if (creature.TargetID != 0 && creature.TargetID != closestFood.ID)
                 {
-                    closestFood = FoodTrackersArray[creature.TargetID - 1];
+                    var previousFood = FoodTrackersArray[creature.TargetID - 1];
+                    previousFood.CreatureID = 0;
+                    FoodTrackersArray[creature.TargetID - 1] = previousFood;
                 }
 
-                if (creature.TargetID == 0 && closestFood.ID != 0 && creature.TargetID != closestFood.ID)
-                {
-                    creature.TargetID = closestFood.ID;
-                    closestFood.CreatureID = creature.ID;
-                    // FoodTrackersArray[closestFood.ID - 1] = closestFood;
-                }
+                closestFood.CreatureID = creature.ID;
+                creature.TargetID = closestFood.ID;
 
                 // closestFood.ID is always zero when there is no closest food entity found
-                if (closestFood.ID == 0 && creature.TargetID == 0)
+                if (closestFood.ID == 0)
                 {
                     creature.IsEating = false;
                     creature.RandomDirectionTimer += DeltaTime;
@@ -83,17 +79,11 @@ namespace Creatures
                         creature.RandomDirectionTimer = 0;
                         creature.MovementDirection = GetRandomMovementDirection();
                     }
-
-                    if (IsPointInsideWorldArea(creaturePosition.xy) == false)
-                    {
-                        var normal = GetReflectionNormal(creaturePosition.xy);
-                        creature.MovementDirection = math.reflect(creature.MovementDirection, normal);
-                    }
                 }
                 else
                 {
                     creature.RandomDirectionTimer = 0;
-
+                    
                     var directionNonNormalized = closestFood.Position - creaturePosition.xy;
                     creature.MovementDirection = math.normalize(directionNonNormalized);
                     var distanceToNearestFood = math.lengthsq(directionNonNormalized);
@@ -111,13 +101,8 @@ namespace Creatures
                 if (creature.Energy <= 0.0)
                 {
                     creature.IsDead = true;
-                    if (creature.TargetID != 0)
-                    {
-                        // Mark the foodTracker as non targeted
-                        closestFood.CreatureID = 0;
-                        // FoodTrackersArray[creature.TargetID - 1] = closestFood;
-                        creature.TargetID = 0;
-                    }
+                    // We have to release the food object
+                    closestFood.CreatureID = 0;
 
                     // When our creature is dead we need to add it to the CreaturesToFree queue for it to be
                     // released outside the job
@@ -189,6 +174,12 @@ namespace Creatures
                 newPosition = position + new float3(direction, 0.0f) * (creature.MovementSpeed * DeltaTime);
                 var speedSquared = creature.MovementSpeed * creature.MovementSpeed;
                 creature.Energy -= (sizeSquared + speedSquared) * CreatureComponent.EnergyLossPerStep;
+                
+                if (IsPointInsideWorldArea(newPosition.xy) == false)
+                {
+                    var normal = GetReflectionNormal(newPosition.xy);
+                    creature.MovementDirection = math.reflect(creature.MovementDirection, normal);
+                }
             }
             else
             {
@@ -207,7 +198,6 @@ namespace Creatures
                 if (closestFood.Energy <= MinFoodEnergy)
                 {
                     creature.IsEating = false;
-                    creature.TargetID = 0;
                     closestFood.Energy = 0.0f;
                     closestFood.CreatureID = 0;
                 }
@@ -226,6 +216,10 @@ namespace Creatures
             return (int) (math.floor(point.x / CellSize) + (CellYMultiplier * math.floor(point.y / CellSize)));
         }
 
+        /// <summary>
+        /// Determines whether the specified point is inside world area and returns the result
+        /// </summary>
+        /// <param name="point">Point that method checks</param>
         private bool IsPointInsideWorldArea(float2 point)
         {
             return point.x >= WorldArea.x && point.x <= WorldArea.z && point.y >= WorldArea.y &&

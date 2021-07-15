@@ -21,6 +21,7 @@ namespace Foods
         public Random RandomGenerator;
 
         public const int CellYMultiplier = 1000;
+        private const float MinFoodEnergy = 0.1f;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
         {
@@ -40,34 +41,45 @@ namespace Foods
                     if (food.RegrowthTimer >= FoodComponent.TimeToRegrowth)
                     {
                         // Regrow our food entity
-                        food.IsEaten = false;
                         food.RegrowthTimer = 0.0f;
+                        food.IsEaten = false;
+                        
                         food.Energy = GetInitialEnergyWithRandom();
                         var randomPosition = GetRandomFoodPosition();
                         translation.Value = randomPosition;
                         
                         tracker.Energy = food.Energy;
                         tracker.Position = randomPosition.xy;
-                        FoodTrackersArray[food.ID - 1] = tracker;
+                        tracker.CreatureID = 0;
+                        
+                        int hashKey = GetHashKeyByPoint(tracker.Position);
+                        QuadrantMultiHashMap.Add(hashKey, tracker);
                     }
                 }
+                // if (food.IsEaten == false)
                 else
                 {
                     food.Energy = tracker.Energy;
 
-                    if (food.Energy <= 0)
+                    if (food.Energy <= MinFoodEnergy)
                     {
                         tracker.Position = FoodComponent.EatenPosition.xy;
+                        tracker.CreatureID = 0;
+                        tracker.Energy = food.Energy = 0;
                         translation.Value = FoodComponent.EatenPosition;
                         food.IsEaten = true;
                     }
+                    else{
+                        int hashKey = GetHashKeyByPoint(tracker.Position);
+                        QuadrantMultiHashMap.Add(hashKey, tracker);
+                    }
                 }
-                int hashKey = GetHashKeyByPoint(translation.Value.xy);
-                QuadrantMultiHashMap.Add(hashKey, tracker);
+                
 
                 // Assign the modified components back to the current chunk
                 chunkFoods[i] = food;
                 chunkTranslations[i] = translation;
+                FoodTrackersArray[food.ID - 1] = tracker;
             }
         }
 

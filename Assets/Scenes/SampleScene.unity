@@ -422,6 +422,36 @@ PrefabInstance:
       propertyPath: creaturesNumber
       value: 4096
       objectReference: {fileID: 0}
+    - target: {fileID: 1468672546799635782, guid: 74e6483b6a94ea5459e62f95a03c114b,
+        type: 3}
+      propertyPath: worldSize.x
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 1468672546799635782, guid: 74e6483b6a94ea5459e62f95a03c114b,
+        type: 3}
+      propertyPath: defaultCreatureParameters.energy
+      value: 5000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1468672546799635782, guid: 74e6483b6a94ea5459e62f95a03c114b,
+        type: 3}
+      propertyPath: defaultCreatureParameters.energyToReproduce
+      value: 15000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1468672546799635782, guid: 74e6483b6a94ea5459e62f95a03c114b,
+        type: 3}
+      propertyPath: defaultCreatureParameters.viewRadius
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1468672546799635782, guid: 74e6483b6a94ea5459e62f95a03c114b,
+        type: 3}
+      propertyPath: worldSize.y
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 1468672546799635782, guid: 74e6483b6a94ea5459e62f95a03c114b,
+        type: 3}
+      propertyPath: foodsNumber
+      value: 4096
+      objectReference: {fileID: 0}
     - target: {fileID: 1468672546799635783, guid: 74e6483b6a94ea5459e62f95a03c114b,
         type: 3}
       propertyPath: m_LocalPosition.x
