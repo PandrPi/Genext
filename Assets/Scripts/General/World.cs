@@ -1,7 +1,10 @@
-﻿using Foods;
+﻿using Creatures;
+using Foods;
 using Managers;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Random = UnityEngine.Random;
 
 namespace General
@@ -45,11 +48,15 @@ namespace General
         public static float4 WorldAreaRect;
         private const string WorldAreaTransformName = "World Area";
 
-        private void Start()
+        private void Awake()
         {
             Instance = this;
             mainCamera = Camera.main;
             myTransform = transform;
+        }
+
+        private void Start()
+        {
             worldArea = myTransform.Find(WorldAreaTransformName);
             worldAreaMaterial = worldArea.GetComponent<Renderer>().sharedMaterial;
 
@@ -66,15 +73,15 @@ namespace General
 
         private void FixedUpdate()
         {
-            float deltaTime = Time.fixedDeltaTime;
+            var deltaTime = Time.fixedDeltaTime;
             float foodManagerTime = 0;
             float creatureManagerTime = 0;
 
             // Process our simulation simulationTimeFactor times! Such a way of game speed up is much faster than
             // changing Time.timeScale property but gives us almost the same result
-            for (int i = 0; i < simulationTimeFactor; i++)
+            for (var i = 0; i < simulationTimeFactor; i++)
             {
-                float start1 = Time.realtimeSinceStartup;
+                var start1 = Time.realtimeSinceStartup;
                 FoodManagementSystem.Instance.CustomUpdate(deltaTime);
                 foodManagerTime += Time.realtimeSinceStartup - start1;
 
@@ -83,62 +90,127 @@ namespace General
                 creatureManagerTime += Time.realtimeSinceStartup - start1;
             }
 
-            UIManager.Instance.SetSimulationManagersTime(foodManagerTime, creatureManagerTime);
+            UIManager.Instance.SetSimulationExecutionTimeForUI(foodManagerTime, creatureManagerTime);
 
             if (Input.GetMouseButtonDown(0))
             {
-                float closestDistance = 1.0f;
-                FoodTracker closestFood = default;
-                var cellSize = quadrantCellSize;
-
-                var mousePosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-                var clickPosition = new float2(mousePosition.x, mousePosition.y);
-                for (var x = clickPosition.x - cellSize; x <= clickPosition.x + cellSize; x += cellSize)
+                if (EventSystem.current.IsPointerOverGameObject() == false)
                 {
-                    for (var y = clickPosition.y - cellSize; y <= clickPosition.y + cellSize; y += cellSize)
-                    {
-                        var positionForQuadrant = new float2(x, y);
-                        FindClosestFood(clickPosition, positionForQuadrant, ref closestDistance, ref closestFood);
-                    }
-                }
-
-                if (closestFood.ID != 0)
-                {
-                    print(closestFood.ToString());
+                    DisplayClickedFoodOrCreature();
                 }
             }
         }
 
-        private void FindClosestFood(float2 clickPosition, float2 positionForQuadrant, ref float closestDistance,
-            ref FoodTracker closestFood)
+        /// <summary>
+        /// This method is looking for the closest object (creature of food) and if it is found the UIManager displays
+        /// the statistics of the closest object
+        /// </summary>
+        private void DisplayClickedFoodOrCreature()
         {
-            int hashKey = GetHashKeyByPoint(positionForQuadrant);
-            if (FoodManagementSystem.FoodQuadrantMultiHashMap.TryGetFirstValue(hashKey, out var foodTracker,
-                out var iterator))
+            const float closestDistance = 0.5f;
+            var cellSize = quadrantCellSize;
+            var foodMultiHashMap = FoodManagementSystem.FoodQuadrantMultiHashMap;
+            var creatureMultiHashMap = CreatureManagementSystem.CreatureQuadrantMultiHashMap;
+
+            var closestFoodDistance = closestDistance;
+            var closestCreatureDistance = closestDistance;
+            FoodTracker closestFood = default;
+            CreatureComponent closestCreature = default;
+
+            var mousePosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            var clickPosition = new float2(mousePosition.x, mousePosition.y);
+
+            // Check the quadrant where the cursor is placed and all its neighbours to find the closest food and
+            // the closest creature
+            for (var x = mousePosition.x - cellSize; x <= mousePosition.x + cellSize; x += cellSize)
+            {
+                for (var y = mousePosition.y - cellSize; y <= mousePosition.y + cellSize; y += cellSize)
+                {
+                    var quadrantPosition = new float2(x, y);
+                    FindClosestObject(clickPosition, quadrantPosition, ref closestFoodDistance, ref closestFood,
+                        foodMultiHashMap);
+                    FindClosestObject(clickPosition, quadrantPosition, ref closestCreatureDistance,
+                        ref closestCreature, creatureMultiHashMap);
+                }
+            }
+
+            // We have to display the closest object. Initially closestCreatureDistance and closestFoodDistance equals
+            // to the value of closestDistance variable. So if both distances are the same then the else branch will
+            // be executed (for example, 1.0 is never smaller than 1.0). However if the food object is closer than the
+            // creature object the else branch will be executed too, so we have to check whether the closestFood.ID
+            // equals to zero and if it is true we just close all statistics windows because we have not found any
+            // object which is close enough to the cursor position. Inside the else branch if closestFood.ID is not
+            // equal to zero we have to display the closestFood stats. In the case if distance to the creature is
+            // smaller than distance to the food we display the closestCreature stats.
+
+            if (closestCreatureDistance < closestFoodDistance)
+            {
+                UIManager.Instance.DisplayCreatureStats(closestCreature);
+            }
+            else
+            {
+                if (closestFood.ID != 0)
+                {
+                    UIManager.Instance.DisplayFoodStats(closestFood);
+                }
+                else
+                {
+                    UIManager.Instance.HideStatisticsWindows();
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method is looking for the closest instance of type T which is placed nearby the cursor position.
+        /// </summary>
+        /// <param name="clickPosition">The cursor position in world space</param>
+        /// <param name="quadrantPosition">Position of the quadrant where the closest object will be searched</param>
+        /// <param name="closestDistance">Current closest distance</param>
+        /// <param name="closestUnitData">Current closest object</param>
+        /// <param name="multiHashMap">A NativeMultiHashMap which will be used</param>
+        /// <typeparam name="T">An struct which implements methods of the IUnitDataWithPosition interface</typeparam>
+        private void FindClosestObject<T>(float2 clickPosition, float2 quadrantPosition, ref float closestDistance,
+            ref T closestUnitData, NativeMultiHashMap<int, T> multiHashMap) where T : struct, IUnitDataWithPosition
+        {
+            var hashKey = GetHashKeyByPoint(quadrantPosition);
+            if (multiHashMap.TryGetFirstValue(hashKey, out var unitData, out var iterator))
             {
                 do
                 {
-                    var currentDistance = math.distancesq(foodTracker.Position, clickPosition);
+                    var currentDistance = math.distance(unitData.GetPosition(), clickPosition);
                     if (currentDistance < closestDistance)
                     {
                         closestDistance = currentDistance;
-                        closestFood = foodTracker;
+                        closestUnitData = unitData;
                     }
-                } while (FoodManagementSystem.FoodQuadrantMultiHashMap.TryGetNextValue(out foodTracker, ref iterator));
+                } while (multiHashMap.TryGetNextValue(out unitData, ref iterator));
             }
         }
 
+        /// <summary>
+        /// Returns the hash number calculated for the specified point
+        /// </summary>
         private int GetHashKeyByPoint(float2 point)
         {
-            return (int) (math.floor(point.x / quadrantCellSize) +
-                          (FoodProcessingJob.CellYMultiplier * math.floor(point.y / quadrantCellSize)));
+            var cellSize = quadrantCellSize;
+            const int cellYMultiplier = FoodProcessingJob.CellYMultiplier;
+            return (int) (math.floor(point.x / cellSize) + (cellYMultiplier * math.floor(point.y / cellSize)));
         }
 
+        /// <summary>
+        /// Returns a new Unity.Mathematics.Random instance with a random seed
+        /// </summary>
         public static Unity.Mathematics.Random GetRandom()
         {
-            return new Unity.Mathematics.Random((uint) Random.Range(1, 1000000));
+            const int randomRangeMin = 1;
+            const int randomRangeMax = 2000000000;
+            return new Unity.Mathematics.Random((uint) Random.Range(randomRangeMin, randomRangeMax));
         }
 
+        /// <summary>
+        /// Sets a new time factor for the simulation
+        /// </summary>
+        /// <param name="timeFactor">New time factor</param>
         public void SetSimulationTimeFactor(int timeFactor)
         {
             simulationTimeFactor = timeFactor;

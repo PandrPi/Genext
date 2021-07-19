@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace Foods
 {
-    public struct FoodTracker : IComponentData
+    public struct FoodTracker : IComponentData, IUnitDataWithPosition
     {
         public int ID;
         public int CreatureID; // ID of the creature whose target is current FoodTracker component
@@ -16,6 +16,11 @@ namespace Foods
         {
             return string.Format(ToStringFormat, ID, CreatureID, Energy, Position);
         }
+
+        public float2 GetPosition()
+        {
+            return Position;
+        }
     }
     public struct FoodComponent : IComponentData
     {
@@ -26,7 +31,7 @@ namespace Foods
 
         public const float InitialEnergy = 500.0f;
         public const float ParameterRandomRange = 0.2f;
-        public const float TimeToRegrowth = 30.0f;
+        public const float TimeToRegrowth = 1.0f;
         public const float MinDistanceToEat = 0.5f; // Represents the minimal distance at which the food can be eaten
         public static readonly float3 EatenPosition = new float3(1e+6f, 1e+6f, 0.0f);
 

@@ -16,7 +16,7 @@ namespace Managers
         public static NativeArray<FoodTracker> FoodTrackersArray;
         public static int QuadrantCellSize;
         private static float2 _halfWorldSize;
-        private static int _foodNumber;
+        private static int _foodsNumber;
         
         private AABB foodMeshAABB;
 
@@ -26,12 +26,12 @@ namespace Managers
         public void Initialize(int foodsNumber, Vector2 worldSize, Mesh foodMesh, Material foodMaterial,
             int quadrantCellSize)
         {
-            _foodNumber = foodsNumber;
+            _foodsNumber = foodsNumber;
             _halfWorldSize = new float2(worldSize.x, worldSize.y) * 0.5f;
             QuadrantCellSize = quadrantCellSize;
 
             _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            FoodQuadrantMultiHashMap = new NativeMultiHashMap<int, FoodTracker>(_foodNumber, Allocator.Persistent);
+            FoodQuadrantMultiHashMap = new NativeMultiHashMap<int, FoodTracker>(foodsNumber, Allocator.Persistent);
             FoodTrackersArray = new NativeArray<FoodTracker>(foodsNumber, Allocator.Persistent);
 
             // Prepare AABB instance for our food entities
@@ -50,7 +50,7 @@ namespace Managers
             _entityManager.CreateEntity(foodArchetype, foodEntitiesArray);
 
             // Loop through all elements inside foodEntitiesArray and initialize all its components
-            for (int i = 0; i < _foodNumber; i++)
+            for (int i = 0; i < _foodsNumber; i++)
             {
                 InitializeFoodEntity(i, foodEntitiesArray[i], foodMesh, foodMaterial);
                 FoodTrackersArray[i] = new FoodTracker()
@@ -118,7 +118,7 @@ namespace Managers
                 QuadrantMultiHashMap = FoodQuadrantMultiHashMap.AsParallelWriter(),
                 FoodTrackersArray = FoodTrackersArray,
                 CellSize = QuadrantCellSize,
-                HalfWorldSizeParam = _halfWorldSize,
+                HalfWorldSize = _halfWorldSize,
                 RandomGenerator = General.World.GetRandom(),
                 DeltaTime = deltaTime
             };

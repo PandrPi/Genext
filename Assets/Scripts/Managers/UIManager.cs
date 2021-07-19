@@ -1,6 +1,7 @@
 ﻿using System;
+using Creatures;
+using Foods;
 using General;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,13 +16,20 @@ namespace Managers
         [SerializeField] private Button pauseOrPlayButton;
         [SerializeField] private Text pauseOrPlayButtonText;
 
-        [Header("Statistics"), SerializeField] private Text averageSpeedText;
-        [SerializeField] private Text averageSizeText;
-        [SerializeField] private Text averageEnergyText;
-        [SerializeField] private Text averageEnergyToRPText;
-        [SerializeField] private Text averageEnergyPBText;
-        [SerializeField] private Text averageDieChanceText;
-        [SerializeField] private Text averageViewRadiusText;
+        // The "St" addition in variable names means that these variable are used to display statistics
+        [Header("Food Statistics"), SerializeField] private GameObject foodStatsWindow;
+        [SerializeField] private Button foodStatsWindowCloseButtonSt;
+        [SerializeField] private Text foodIDTextSt;
+        [SerializeField] private Text foodEnergyTextSt;
+
+        [Header("Creature Statistics"), SerializeField] private GameObject creatureStatsWindow;
+        [SerializeField] private Button creatureStatsWindowCloseButtonSt;
+        [SerializeField] private Text creatureIDTextSt;
+        [SerializeField] private Text creatureMovementSpeedTextSt;
+        [SerializeField] private Text creatureSizeTextSt;
+        [SerializeField] private Text creatureEnergyTextSt;
+        [SerializeField] private Text creatureEnergyAmountForReproductionTextSt;
+        [SerializeField] private Text creatureDieChanceTextSt;
 
         [Header("Simulation time"), SerializeField]
         private Text simulationTimeText;
@@ -38,6 +46,8 @@ namespace Managers
 
             timeFactorSlider.onValueChanged.AddListener(SetTimeFactor);
             pauseOrPlayButton.onClick.AddListener(PauseOrPlaySimulation);
+            foodStatsWindowCloseButtonSt.onClick.AddListener(() => foodStatsWindow.SetActive(false));
+            creatureStatsWindowCloseButtonSt.onClick.AddListener(() => creatureStatsWindow.SetActive(false));
         }
 
         /// <summary>
@@ -52,6 +62,9 @@ namespace Managers
             timeFactorSlider.value = isSimulationPlaying ? 0.0f : 1.0f;
         }
 
+        /// <summary>
+        /// Updates the PauseOrPlay button text depending on the actual simulation state
+        /// </summary>
         private void SetPauseOrPlayButtonText()
         {
             // If time factor is not equal to zero the simulation is playing
@@ -81,7 +94,12 @@ namespace Managers
             populationNumberText.text = populationNumber.ToString();
         }
 
-        public void SetSimulationManagersTime(float foodManagerTime, float creatureManagerTime)
+        /// <summary>
+        /// Updates the text object that stores an information about execution time of food and creature managers
+        /// </summary>
+        /// <param name="foodManagerTime">Total execution time of the food manager</param>
+        /// <param name="creatureManagerTime">Total execution time of the creature manager</param>
+        public void SetSimulationExecutionTimeForUI(float foodManagerTime, float creatureManagerTime)
         {
             const float conversionMultiplier = 1000.0f;
             const int roundToDigits = 3;
@@ -90,6 +108,47 @@ namespace Managers
             creatureManagerTime = (float) Math.Round(creatureManagerTime * conversionMultiplier, roundToDigits);
 
             simulationTimeText.text = string.Format(SimulationTimeFormat, foodManagerTime, creatureManagerTime);
+        }
+
+        /// <summary>
+        /// Hides all the statistics windows
+        /// </summary>
+        public void HideStatisticsWindows()
+        {
+            foodStatsWindow.SetActive(false);
+            creatureStatsWindow.SetActive(false);
+        }
+
+        /// <summary>
+        /// Display statistic of the specified creature 
+        /// </summary>
+        public void DisplayCreatureStats(CreatureComponent creature)
+        {
+            HideStatisticsWindows();
+
+            const string twoDigitsFormat = "0.00";
+
+            creatureIDTextSt.text = creature.ID.ToString();
+            creatureMovementSpeedTextSt.text = creature.MovementSpeed.ToString(twoDigitsFormat);
+            creatureSizeTextSt.text = creature.Size.ToString(twoDigitsFormat);
+            creatureEnergyTextSt.text = ((int) creature.Energy).ToString();
+            creatureEnergyAmountForReproductionTextSt.text = ((int) creature.EnergyAmountForReproduction).ToString();
+            creatureDieChanceTextSt.text = creature.DieChance.ToString(twoDigitsFormat);
+            
+            creatureStatsWindow.SetActive(true);
+        }
+
+        /// <summary>
+        /// Display statistics of the specified food
+        /// </summary>
+        public void DisplayFoodStats(FoodTracker food)
+        {
+            HideStatisticsWindows();
+
+            foodIDTextSt.text = food.ID.ToString();
+            foodEnergyTextSt.text = ((int) food.Energy).ToString();
+            
+            foodStatsWindow.SetActive(true);
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Managers
     public class CreatureManagementSystem : ComponentSystem
     {
         public static CreatureManagementSystem Instance;
+        public static NativeMultiHashMap<int, CreatureComponent> CreatureQuadrantMultiHashMap;
 
         private int totalCreaturesNumber;
         private int numberOfLivingCreatures;
@@ -29,6 +30,8 @@ namespace Managers
         public void Initialize(int creaturesNumber, Mesh creatureMesh, Material creatureMaterial)
         {
             _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            CreatureQuadrantMultiHashMap =
+                new NativeMultiHashMap<int, CreatureComponent>(creaturesNumber, Allocator.Persistent);
 
             totalCreaturesNumber = creaturesNumber;
             // Prepare AABB instance for our food entities
@@ -77,6 +80,7 @@ namespace Managers
         {
             base.OnDestroy();
             // Free resources
+            CreatureQuadrantMultiHashMap.Dispose();
             creaturesPool.Dispose();
             creaturesForReproduction.Dispose();
             creaturesForRelease.Dispose();
@@ -142,11 +146,14 @@ namespace Managers
 
         public void CustomUpdate(float deltaTime)
         {
+            CreatureQuadrantMultiHashMap.Clear();
+            
             var job = new CreatureProcessingJob()
             {
                 EntityType = GetArchetypeChunkEntityType(),
                 CreatureType = GetArchetypeChunkComponentType<CreatureComponent>(),
                 TranslationType = GetArchetypeChunkComponentType<Translation>(),
+                QuadrantMultiHashMap = CreatureQuadrantMultiHashMap.AsParallelWriter(),
                 CreaturesForReproduction = creaturesForReproduction.AsParallelWriter(),
                 CreaturesForRelease = creaturesForRelease.AsParallelWriter(),
                 FoodTrackersArray = FoodManagementSystem.FoodTrackersArray,

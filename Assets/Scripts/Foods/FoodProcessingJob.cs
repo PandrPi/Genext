@@ -16,12 +16,14 @@ namespace Foods
         
         [WriteOnly] public NativeMultiHashMap<int, FoodTracker>.ParallelWriter QuadrantMultiHashMap;
         [ReadOnly] public int CellSize;
-        [ReadOnly] public float2 HalfWorldSizeParam;
+        [ReadOnly] public float2 HalfWorldSize;
         [ReadOnly] public float DeltaTime;
         public Random RandomGenerator;
 
         public const int CellYMultiplier = 1000;
         private const float MinFoodEnergy = 0.1f;
+        private const int RandomRangeMin = 1;
+        private const int RandomRangeMax = 1000000000;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
         {
@@ -44,8 +46,8 @@ namespace Foods
                         food.RegrowthTimer = 0.0f;
                         food.IsEaten = false;
                         
-                        food.Energy = GetInitialEnergyWithRandom();
-                        var randomPosition = GetRandomFoodPosition();
+                        food.Energy = GetInitialEnergyWithRandom(food.ID);
+                        var randomPosition = GetRandomFoodPosition(food.ID);
                         translation.Value = randomPosition;
                         
                         tracker.Energy = food.Energy;
@@ -86,36 +88,39 @@ namespace Foods
         /// Returns the initial food energy plus some random value inside [-ParameterRandomRange, ParameterRandomRange]
         /// range percentages of InitialEnergy.
         /// </summary>
-        private float GetInitialEnergyWithRandom()
+        private float GetInitialEnergyWithRandom(int foodID)
         {
             const float initialEnergy = FoodComponent.InitialEnergy;
-            float randomValue = RandomValue(initialEnergy * FoodComponent.ParameterRandomRange);
+            float randomValue = RandomValue(initialEnergy * FoodComponent.ParameterRandomRange, foodID);
             return initialEnergy + randomValue;
-        }
-
-        private float RandomValue(float range)
-        {
-            return (RandomGenerator.NextFloat() * range * 2.0f) - range;
         }
 
         /// <summary>
         /// Returns the hash number calculated for the specified point
         /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
         private int GetHashKeyByPoint(float2 point)
         {
             return (int) (math.floor(point.x / CellSize) + (CellYMultiplier * math.floor(point.y / CellSize)));
         }
 
         /// <summary>
+        /// Returns a random number within [-range; +range] range
+        /// </summary>
+        /// <param name="range">Desired range</param>
+        /// <param name="foodID">Food ID is used to make the Random more random</param>
+        private float RandomValue(float range, int foodID)
+        {
+            var seed = (uint)(RandomGenerator.NextInt(RandomRangeMin, RandomRangeMax) + foodID);
+            return (new Random(seed).NextFloat() * range * 2.0f) - range;
+        }
+
+        /// <summary>
         /// Returns the random position inside the world area
         /// </summary>
-        /// <returns></returns>
-        private float3 GetRandomFoodPosition()
+        private float3 GetRandomFoodPosition(int foodID)
         {
-            return new float3(RandomValue(1.0f) * (HalfWorldSizeParam.x - 1),
-                RandomValue(1.0f) * (HalfWorldSizeParam.y - 1), 0.0f);
+            return new float3(RandomValue(1.0f, foodID) * (HalfWorldSize.x - 1),
+                RandomValue(1.0f, foodID) * (HalfWorldSize.y - 1), 0.0f);
         }
     }
 }

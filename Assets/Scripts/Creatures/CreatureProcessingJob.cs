@@ -17,6 +17,7 @@ namespace Creatures
         [NativeDisableParallelForRestriction] public NativeArray<FoodTracker> FoodTrackersArray;
         // public NativeArray<FoodTracker> FoodTrackersArray;
 
+        [WriteOnly] public NativeMultiHashMap<int, CreatureComponent>.ParallelWriter QuadrantMultiHashMap;
         [WriteOnly] public NativeQueue<Entity>.ParallelWriter CreaturesForReproduction;
         [WriteOnly] public NativeQueue<Entity>.ParallelWriter CreaturesForRelease;
         [ReadOnly] public NativeMultiHashMap<int, FoodTracker> FoodQuadrantMultiHashMap;
@@ -45,11 +46,12 @@ namespace Creatures
 
                 FoodTracker closestFood = default;
                 // We square the ViewRadius here in order not to square it multiple times in the future.
-                // It is necessary for us to use lengthsq and distancesq methods because they are faster
-                float closestDistance = creature.ViewRadius * creature.ViewRadius;
-                float3 creaturePosition = translation.Value;
+                // It is necessary for us to use lengthsq and distancesq methods because they are faster than
+                // length and distance methods
+                var closestDistance = creature.ViewRadius * creature.ViewRadius;
+                var creaturePosition = translation.Value;
 
-                // The higher ViewRadius the creature have the more neighbour quadrants we have to check
+                // The higher ViewRadius creature have the more neighbour quadrants we have to check
                 var neighbourQuadrantsNumber = CellSize * (int) math.ceil(creature.ViewRadius / CellSize);
                 // Check the current quadrant and all its neighbours to find the closest food
                 for (var x = creaturePosition.x - neighbourQuadrantsNumber;
@@ -109,6 +111,9 @@ namespace Creatures
 
                 translation.Value = MoveAlongDirectionOrEat(ref creature, ref closestFood, creaturePosition,
                     creature.MovementDirection);
+                creature.Position = translation.Value.xy;
+                
+                QuadrantMultiHashMap.Add(GetHashKeyByPoint(creature.Position), creature);
 
                 // If the creature energy is too low we kill this creature
                 if (creature.Energy <= 0.0)
@@ -158,9 +163,11 @@ namespace Creatures
             {
                 do
                 {
+                    var actualFoodTrackerData = FoodTrackersArray[foodTracker.ID - 1];
+                    
                     // We can check whether the foodTracker is the closest if and only if the foodTracker
                     // is marked as non targeted or targeted by the current creature
-                    if (foodTracker.CreatureID == 0 || foodTracker.CreatureID == creatureID)
+                    if (actualFoodTrackerData.CreatureID == 0 || actualFoodTrackerData.CreatureID == creatureID)
                     {
                         var currentDistance = math.distancesq(foodTracker.Position, creaturePosition);
                         if (currentDistance < closestDistance)
@@ -211,7 +218,6 @@ namespace Creatures
                 creature.Energy += eatenEnergy;
                 closestFood.Energy -= eatenEnergy;
 
-                //
                 if (closestFood.Energy <= MinFoodEnergy)
                 {
                     creature.IsEating = false;

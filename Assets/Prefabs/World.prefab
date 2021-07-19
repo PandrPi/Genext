@@ -200,18 +200,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d86f9d7cc62a2ca48a8283c49136bfc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldSize: {x: 192, y: 192}
+  worldSize: {x: 400, y: 200}
   foodsNumber: 4096
   foodMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   foodMaterial: {fileID: 2100000, guid: 0e7478d3adaf25e4d8546f31d94e929c, type: 2}
-  creaturesNumber: 1000
+  creaturesNumber: 4096
   creatureMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   creatureMaterial: {fileID: 2100000, guid: 24a2c61df66e06b4c87d957ac3e45e90, type: 2}
   defaultCreatureParameters:
     movementSpeed: 1
     size: 1
-    energy: 2500
-    energyToReproduce: 3000
+    energy: 5000
+    energyToReproduce: 15000
     dieChance: 0.2
-    viewRadius: 3
+    viewRadius: 10
   quadrantCellSize: 5

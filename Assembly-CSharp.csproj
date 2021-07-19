@@ -63,6 +63,7 @@
      <Compile Include="Assets\Scripts\Foods\FoodComponent.cs" />
      <Compile Include="Assets\Scripts\Foods\FoodProcessingJob.cs" />
      <Compile Include="Assets\Scripts\General\World.cs" />
+     <Compile Include="Assets\Scripts\IUnitDataWithPosition.cs" />
      <Compile Include="Assets\Scripts\Managers\CreatureManagementSystem.cs" />
      <Compile Include="Assets\Scripts\Managers\FoodManagementSystem.cs" />
      <Compile Include="Assets\Scripts\Managers\UIManager.cs" />

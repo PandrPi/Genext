@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 namespace Creatures
 {
-    public struct CreatureComponent : IComponentData
+    public struct CreatureComponent : IComponentData, IUnitDataWithPosition
     {
         // Creature Behaviour Rules:
         // the higher movement speed the higher energy loss per step
@@ -14,6 +14,7 @@ namespace Creatures
         
         public int ID;
         public int TargetID; // ID of food target, the creature has no target if it is equal to zero
+        public float2 Position;
         public float MovementSpeed; // movement speed of the creature
         public float Size; // size of the creature
         public float Energy; // energy of the creature, can be gained by eating food and can be lost by movement
@@ -46,5 +47,10 @@ namespace Creatures
         public static float3 LowSpeedColor;
         public static float3 HighSpeedColor;
         public static readonly float3 DeadPosition = new float3(1e+6f, 1e+6f, 0.0f);
+        
+        public float2 GetPosition()
+        {
+            return Position;
+        }
     }
 }
