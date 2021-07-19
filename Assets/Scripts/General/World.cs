@@ -71,7 +71,7 @@ namespace General
             float creatureManagerTime = 0;
 
             // Process our simulation simulationTimeFactor times! Such a way of game speed up is much faster than
-            // changing Time.timeScale property but gives us almost (not sure, we need to test it) the same result
+            // changing Time.timeScale property but gives us almost the same result
             for (int i = 0; i < simulationTimeFactor; i++)
             {
                 float start1 = Time.realtimeSinceStartup;
@@ -131,7 +131,7 @@ namespace General
         private int GetHashKeyByPoint(float2 point)
         {
             return (int) (math.floor(point.x / quadrantCellSize) +
-                          (FoodUpdateJob.CellYMultiplier * math.floor(point.y / quadrantCellSize)));
+                          (FoodProcessingJob.CellYMultiplier * math.floor(point.y / quadrantCellSize)));
         }
 
         public static Unity.Mathematics.Random GetRandom()

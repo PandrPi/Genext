@@ -111,7 +111,7 @@ namespace Managers
         {
             FoodQuadrantMultiHashMap.Clear();
 
-            var job = new FoodUpdateJob()
+            var job = new FoodProcessingJob()
             {
                 FoodType = GetArchetypeChunkComponentType<FoodComponent>(),
                 TranslationType = GetArchetypeChunkComponentType<Translation>(),

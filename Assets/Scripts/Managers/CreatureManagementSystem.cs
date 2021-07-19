@@ -1,13 +1,11 @@
 ﻿using Creatures;
 using Foods;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
-using Random = Unity.Mathematics.Random;
 
 namespace Managers
 {
@@ -17,10 +15,10 @@ namespace Managers
 
         private int totalCreaturesNumber;
         private int numberOfLivingCreatures;
-        private NativeQueue<Entity> creaturesPool;
         private AABB creatureMeshAABB;
-        private NativeQueue<Entity> creaturesToReproduce;
-        private NativeQueue<Entity> creaturesToFree;
+        private NativeQueue<Entity> creaturesPool;
+        private NativeQueue<Entity> creaturesForReproduction;
+        private NativeQueue<Entity> creaturesForRelease;
 
         private static EntityManager _entityManager;
         private static EntityQuery _creatureEntityQuery;
@@ -36,7 +34,7 @@ namespace Managers
             // Prepare AABB instance for our food entities
             creatureMeshAABB = creatureMesh.bounds.ToAABB();
 
-            // Prepare food archetype
+            // Prepare creature archetype
             EntityArchetype creatureArchetype = _entityManager.CreateArchetype(
                 typeof(CreatureComponent),
                 typeof(Translation),
@@ -47,8 +45,8 @@ namespace Managers
             );
 
             creaturesPool = new NativeQueue<Entity>(Allocator.Persistent);
-            creaturesToReproduce = new NativeQueue<Entity>(Allocator.Persistent);
-            creaturesToFree = new NativeQueue<Entity>(Allocator.Persistent);
+            creaturesForReproduction = new NativeQueue<Entity>(Allocator.Persistent);
+            creaturesForRelease = new NativeQueue<Entity>(Allocator.Persistent);
 
             // Create desired number of entities for further usage
             NativeArray<Entity> creatureEntitiesArray = new NativeArray<Entity>(creaturesNumber, Allocator.Temp);
@@ -62,8 +60,10 @@ namespace Managers
                 InitializeCreatureEntity(i, creatureEntity, creatureMesh, creatureMaterial);
             }
 
+            // Release array resources
             creatureEntitiesArray.Dispose();
 
+            // Initialize creatures query
             _creatureEntityQuery = GetEntityQuery(typeof(CreatureComponent), typeof(Translation));
         }
 
@@ -78,12 +78,12 @@ namespace Managers
             base.OnDestroy();
             // Free resources
             creaturesPool.Dispose();
-            creaturesToReproduce.Dispose();
-            creaturesToFree.Dispose();
+            creaturesForReproduction.Dispose();
+            creaturesForRelease.Dispose();
         }
 
         /// <summary>
-        /// Initializes creature entity. Sets all necessary components for the entity object.
+        /// Initializes creature entity and all necessary components for this entity.
         /// </summary>
         private void InitializeCreatureEntity(int index, Entity creatureEntity, Mesh creatureMesh,
             Material creatureMaterial)
@@ -121,37 +121,38 @@ namespace Managers
         /// <summary>
         /// Creates and returns a new CreatureComponent instance with default parameters
         /// </summary>
-        private CreatureComponent CreateCreatureComponentWithDefaultParameters()
+        private static CreatureComponent CreateCreatureComponentWithDefaultParameters()
         {
+            var defaultCreatureParameters = General.World.Instance.defaultCreatureParameters;
             return new CreatureComponent()
             {
-                MovementSpeed = General.World.Instance.defaultCreatureParameters.movementSpeed,
-                Size = General.World.Instance.defaultCreatureParameters.size,
-                Energy = General.World.Instance.defaultCreatureParameters.energy,
-                EnergyToReproduce = General.World.Instance.defaultCreatureParameters.energyToReproduce,
-                DieChance = General.World.Instance.defaultCreatureParameters.dieChance,
-                ViewRadius = General.World.Instance.defaultCreatureParameters.viewRadius,
+                MovementSpeed = defaultCreatureParameters.movementSpeed,
+                Size = defaultCreatureParameters.size,
+                Energy = defaultCreatureParameters.energy,
+                EnergyAmountForReproduction = defaultCreatureParameters.energyToReproduce,
+                DieChance = defaultCreatureParameters.dieChance,
+                ViewRadius = defaultCreatureParameters.viewRadius,
                 MovementDirection = float2.zero,
                 IsEating = false,
                 IsDead = true,
                 RandomDirectionTimer = 0.0f,
-                ReproduceReserveEnergy = 0.0f
+                ReserveEnergyAfterReproduction = 0.0f
             };
         }
 
         public void CustomUpdate(float deltaTime)
         {
-            var job = new UpdateCreaturesJob()
+            var job = new CreatureProcessingJob()
             {
                 EntityType = GetArchetypeChunkEntityType(),
                 CreatureType = GetArchetypeChunkComponentType<CreatureComponent>(),
                 TranslationType = GetArchetypeChunkComponentType<Translation>(),
-                CreaturesToReproduce = creaturesToReproduce.AsParallelWriter(),
-                CreaturesToFree = creaturesToFree.AsParallelWriter(),
+                CreaturesForReproduction = creaturesForReproduction.AsParallelWriter(),
+                CreaturesForRelease = creaturesForRelease.AsParallelWriter(),
                 FoodTrackersArray = FoodManagementSystem.FoodTrackersArray,
-                QuadrantMultiHashMap = FoodManagementSystem.FoodQuadrantMultiHashMap,
+                FoodQuadrantMultiHashMap = FoodManagementSystem.FoodQuadrantMultiHashMap,
                 CellSize = FoodManagementSystem.QuadrantCellSize,
-                CellYMultiplier = FoodUpdateJob.CellYMultiplier,
+                CellYMultiplier = FoodProcessingJob.CellYMultiplier,
                 WorldArea = General.World.WorldAreaRect,
                 RandomGenerator = General.World.GetRandom(),
                 DeltaTime = deltaTime
@@ -160,28 +161,29 @@ namespace Managers
             var jobHandle = job.Schedule(_creatureEntityQuery);
             jobHandle.Complete();
 
-            // Process the reproduced creatures
-            while (creaturesToFree.Count > 0)
+            // Process the creatures for release
+            while (creaturesForRelease.Count > 0)
             {
-                var creature = creaturesToFree.Dequeue();
+                var creature = creaturesForRelease.Dequeue();
                 FreeCreature(creature);
             }
 
-            while (creaturesToReproduce.Count > 0)
+            // Process the creatures for reproduction
+            while (creaturesForReproduction.Count > 0)
             {
-                var creature = creaturesToReproduce.Dequeue();
+                var creature = creaturesForReproduction.Dequeue();
                 ReproduceCreature(creature);
             }
         }
 
         protected override void OnUpdate()
         {
-            // We have our CustomUpdate method which execute all necessary logic, but we also have not to remove this
+            // We have our CustomUpdate method which executes all necessary logic, but we also have not to remove this
             // empty method because this will cause "NotImplemented" exception during the code compilation
         }
 
         /// <summary>
-        /// Prepares the dead creature object for the further usage inside the ObjectPooling algorithm.
+        /// Prepares the dead creature entity for the further usage inside the ObjectPooling algorithm.
         /// </summary>
         private void FreeCreature(Entity creatureEntity)
         {
@@ -193,12 +195,11 @@ namespace Managers
                 var foodTracker = FoodManagementSystem.FoodTrackersArray[childCreatureComponent.TargetID - 1];
                 if (foodTracker.CreatureID == childCreatureComponent.ID)
                 {
-                    // Debug.Log("Fixed old CreatureID on free");
                     foodTracker.CreatureID = 0;
                     FoodManagementSystem.FoodTrackersArray[childCreatureComponent.TargetID - 1] = foodTracker;
                 }
             }
-            
+
             _entityManager.SetComponentData(creatureEntity, new Translation()
             {
                 Value = CreatureComponent.DeadPosition
@@ -247,11 +248,8 @@ namespace Managers
                 // Debug.Log("Cannot reproduce a child creature because there is no free creature entity!");
                 return;
             }
-            numberOfLivingCreatures = totalCreaturesNumber - creaturesPool.Count;
-            UIManager.Instance.SetPopulationNumberText(numberOfLivingCreatures);
 
             var childCreatureComponent = _entityManager.GetComponentData<CreatureComponent>(childEntity);
-
             var parentPosition = _entityManager.GetComponentData<Translation>(parentEntity).Value;
             _entityManager.SetComponentData(childEntity, new Translation() {Value = parentPosition});
             InitializeCreature(childEntity, new CreatureComponent()
@@ -260,11 +258,11 @@ namespace Managers
                 MovementSpeed = parentCreatureComponent.MovementSpeed,
                 Size = parentCreatureComponent.Size,
                 Energy = parentCreatureComponent.Energy,
-                EnergyToReproduce = parentCreatureComponent.EnergyToReproduce,
+                EnergyAmountForReproduction = parentCreatureComponent.EnergyAmountForReproduction,
                 DieChance = parentCreatureComponent.DieChance,
                 ViewRadius = parentCreatureComponent.ViewRadius,
             });
-            
+
             // If some foodTracker object is marked as targeted by the childCreatureComponent we have to reset 
             // the CreatureID of that foodTracker object
             if (childCreatureComponent.TargetID != 0)
@@ -285,10 +283,10 @@ namespace Managers
         }
 
         /// <summary>
-        /// Initializes and makes specified creature entity active(living). 
+        /// Initializes and makes specified creature entity active (living). 
         /// </summary>
         /// <param name="creatureEntity">Creature entity that will be initialized</param>
-        /// <param name="oldCreature">CreatureComponent that contains parent parameters. this parameter is used only
+        /// <param name="oldCreature">CreatureComponent that contains parent parameters. This parameter is used only
         /// by ReproduceCreature method </param>
         public void InitializeCreature(Entity creatureEntity, CreatureComponent oldCreature = default)
         {
@@ -302,10 +300,12 @@ namespace Managers
                 MovementSpeed = MathHelper.GetMutatedValue(oldCreature.MovementSpeed, randomMutationRange),
                 Size = MathHelper.GetMutatedValue(oldCreature.Size, randomMutationRange),
                 Energy = MathHelper.GetMutatedValue(oldCreature.Energy, randomMutationRange),
-                EnergyToReproduce = MathHelper.GetMutatedValue(oldCreature.EnergyToReproduce, randomMutationRange),
+                EnergyAmountForReproduction =
+                    MathHelper.GetMutatedValue(oldCreature.EnergyAmountForReproduction, randomMutationRange),
                 ViewRadius = MathHelper.GetMutatedValue(oldCreature.ViewRadius, randomMutationRange),
                 DieChance = MathHelper.GetMutatedValue(oldCreature.DieChance, randomMutationRange),
-                ReproduceReserveEnergy = oldCreature.EnergyToReproduce * CreatureComponent.EnergyReserveAfterReproduce,
+                ReserveEnergyAfterReproduction = oldCreature.EnergyAmountForReproduction *
+                                                 CreatureComponent.EnergyReserveAfterReproduce,
 
                 TargetID = 0,
                 MovementDirection = float2.zero,
@@ -313,6 +313,9 @@ namespace Managers
                 IsDead = false,
                 RandomDirectionTimer = 0.0f
             };
+
+            numberOfLivingCreatures = totalCreaturesNumber - creaturesPool.Count;
+            UIManager.Instance.SetPopulationNumberText(numberOfLivingCreatures);
 
             _entityManager.SetComponentData(creatureEntity, newCreatureComponent);
             _entityManager.SetComponentData(creatureEntity, new Scale() {Value = newCreatureComponent.Size});

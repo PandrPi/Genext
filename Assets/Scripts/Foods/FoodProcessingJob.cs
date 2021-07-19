@@ -7,7 +7,7 @@ using Unity.Transforms;
 namespace Foods
 {
     [BurstCompile]
-    public struct FoodUpdateJob : IJobChunk
+    public struct FoodProcessingJob : IJobChunk
     {
         public ArchetypeChunkComponentType<FoodComponent> FoodType;
         public ArchetypeChunkComponentType<Translation> TranslationType;
@@ -56,7 +56,6 @@ namespace Foods
                         QuadrantMultiHashMap.Add(hashKey, tracker);
                     }
                 }
-                // if (food.IsEaten == false)
                 else
                 {
                     food.Energy = tracker.Energy;

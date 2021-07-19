@@ -8,7 +8,7 @@ using Unity.Transforms;
 namespace Creatures
 {
     [BurstCompile]
-    public struct UpdateCreaturesJob : IJobChunk
+    public struct CreatureProcessingJob : IJobChunk
     {
         [ReadOnly] public ArchetypeChunkEntityType EntityType;
         public ArchetypeChunkComponentType<CreatureComponent> CreatureType;
@@ -17,9 +17,9 @@ namespace Creatures
         [NativeDisableParallelForRestriction] public NativeArray<FoodTracker> FoodTrackersArray;
         // public NativeArray<FoodTracker> FoodTrackersArray;
 
-        [WriteOnly] public NativeQueue<Entity>.ParallelWriter CreaturesToReproduce;
-        [WriteOnly] public NativeQueue<Entity>.ParallelWriter CreaturesToFree;
-        [ReadOnly] public NativeMultiHashMap<int, FoodTracker> QuadrantMultiHashMap;
+        [WriteOnly] public NativeQueue<Entity>.ParallelWriter CreaturesForReproduction;
+        [WriteOnly] public NativeQueue<Entity>.ParallelWriter CreaturesForRelease;
+        [ReadOnly] public NativeMultiHashMap<int, FoodTracker> FoodQuadrantMultiHashMap;
         [ReadOnly] public int CellSize;
         [ReadOnly] public int CellYMultiplier;
         [ReadOnly] public float4 WorldArea; // xy - left bottom corner, zw - right upper corner
@@ -40,25 +40,34 @@ namespace Creatures
                 var creature = chunkCreatures[i];
                 var translation = chunkTranslations[i];
 
+                // There is no need to update the creature when it is dead
                 if (creature.IsDead) continue;
 
-                // Most of creature logic is here
                 FoodTracker closestFood = default;
+                // We square the ViewRadius here in order not to square it multiple times in the future.
+                // It is necessary for us to use lengthsq and distancesq methods because they are faster
                 float closestDistance = creature.ViewRadius * creature.ViewRadius;
                 float3 creaturePosition = translation.Value;
-                
-                // check the current quadrant and its neighbours for the closest food
-                for (var x = creaturePosition.x - CellSize; x <= creaturePosition.x + CellSize; x += CellSize)
+
+                // The higher ViewRadius the creature have the more neighbour quadrants we have to check
+                var neighbourQuadrantsNumber = CellSize * (int) math.ceil(creature.ViewRadius / CellSize);
+                // Check the current quadrant and all its neighbours to find the closest food
+                for (var x = creaturePosition.x - neighbourQuadrantsNumber;
+                    x <= creaturePosition.x + neighbourQuadrantsNumber;
+                    x += CellSize)
                 {
-                    for (var y = creaturePosition.y - CellSize; y <= creaturePosition.y + CellSize; y += CellSize)
+                    for (var y = creaturePosition.y - neighbourQuadrantsNumber;
+                        y <= creaturePosition.y + neighbourQuadrantsNumber;
+                        y += CellSize)
                     {
                         var positionForQuadrant = new float2(x, y);
                         FindClosestFood(creaturePosition.xy, positionForQuadrant, creature.ID, ref closestDistance,
                             ref closestFood);
                     }
                 }
-                
-                // When our current food object is not the previous food object we have to release the previous food
+
+                // When our closestFood object is not equal to the food object from the previous frame we have
+                // to release the previous food by setting its CreatureID to zero
                 if (creature.TargetID != 0 && creature.TargetID != closestFood.ID)
                 {
                     var previousFood = FoodTrackersArray[creature.TargetID - 1];
@@ -69,7 +78,8 @@ namespace Creatures
                 closestFood.CreatureID = creature.ID;
                 creature.TargetID = closestFood.ID;
 
-                // closestFood.ID is always zero when there is no closest food entity found
+                // closestFood.ID is always zero when there is no closest food entity found, so we move the creature
+                // along some random direction
                 if (closestFood.ID == 0)
                 {
                     creature.IsEating = false;
@@ -82,12 +92,14 @@ namespace Creatures
                 }
                 else
                 {
-                    creature.RandomDirectionTimer = 0;
-                    
+                    // If there is a closestFood object which is not the default we calculate distance and
+                    // movement direction to the closestFood
+
                     var directionNonNormalized = closestFood.Position - creaturePosition.xy;
                     creature.MovementDirection = math.normalize(directionNonNormalized);
                     var distanceToNearestFood = math.lengthsq(directionNonNormalized);
 
+                    // If the creature is close enough it can start eating the closest food
                     if (distanceToNearestFood < FoodComponent.MinDistanceToEat)
                     {
                         creature.IsEating = true;
@@ -98,25 +110,28 @@ namespace Creatures
                 translation.Value = MoveAlongDirectionOrEat(ref creature, ref closestFood, creaturePosition,
                     creature.MovementDirection);
 
+                // If the creature energy is too low we kill this creature
                 if (creature.Energy <= 0.0)
                 {
                     creature.IsDead = true;
                     // We have to release the food object
                     closestFood.CreatureID = 0;
 
-                    // When our creature is dead we need to add it to the CreaturesToFree queue for it to be
+                    // When our creature is dead we need to add it to the CreaturesForRelease queue for it to be
                     // released outside the job
-                    CreaturesToFree.Enqueue(creatureEntity);
+                    CreaturesForRelease.Enqueue(creatureEntity);
                 }
 
-                if (creature.Energy >= creature.EnergyToReproduce + creature.ReproduceReserveEnergy)
+                // If the creature has enough energy for reproduction
+                if (creature.Energy >= creature.EnergyAmountForReproduction + creature.ReserveEnergyAfterReproduction)
                 {
-                    creature.Energy -= creature.EnergyToReproduce;
+                    creature.Energy -= creature.EnergyAmountForReproduction;
                     // When our creature collects enough energy it can reproduce the child, so we add this creature
-                    // to CreaturesToReproduce queue to do it later
-                    CreaturesToReproduce.Enqueue(creatureEntity);
+                    // to CreaturesForReproduction queue to do it later
+                    CreaturesForReproduction.Enqueue(creatureEntity);
                 }
-                
+
+                // We have to apply all changes which we made to the closestFood object
                 if (closestFood.ID != 0) FoodTrackersArray[closestFood.ID - 1] = closestFood;
 
                 // Assign the modified components back to the current chunk
@@ -126,24 +141,25 @@ namespace Creatures
         }
 
         /// <summary>
-        /// this method is looking for the food entity, the distance from which to the specified creaturePosition is
-        /// minimal. This search is within the current quadrant.
+        /// This method is looking for the food entity, the distance from which to the specified creaturePosition is
+        /// the smallest. This search is processed within the current quadrant which is determined by the hash value
+        /// of positionForQuadrant parameter.
         /// </summary>
         /// <param name="creaturePosition">The actual creature position</param>
         /// <param name="positionForQuadrant">This position is used to calculate the hash index of the quadrant</param>
-        /// <param name="creatureID">ID of the current creature</param>
+        /// <param name="creatureID">ID of the creature</param>
         /// <param name="closestDistance">The current closest distance</param>
         /// <param name="closestFood">The current FoodComponent instance</param>
         private void FindClosestFood(float2 creaturePosition, float2 positionForQuadrant, int creatureID,
             ref float closestDistance, ref FoodTracker closestFood)
         {
             int hashKey = GetHashKeyByPoint(positionForQuadrant);
-            if (QuadrantMultiHashMap.TryGetFirstValue(hashKey, out var foodTracker, out var iterator))
+            if (FoodQuadrantMultiHashMap.TryGetFirstValue(hashKey, out var foodTracker, out var iterator))
             {
                 do
                 {
-                    // If and only if the foodTracker is marked as non targeted or targeted by current creature
-                    // we can check if the foodTracker is the closest
+                    // We can check whether the foodTracker is the closest if and only if the foodTracker
+                    // is marked as non targeted or targeted by the current creature
                     if (foodTracker.CreatureID == 0 || foodTracker.CreatureID == creatureID)
                     {
                         var currentDistance = math.distancesq(foodTracker.Position, creaturePosition);
@@ -153,12 +169,12 @@ namespace Creatures
                             closestFood = foodTracker;
                         }
                     }
-                } while (QuadrantMultiHashMap.TryGetNextValue(out foodTracker, ref iterator));
+                } while (FoodQuadrantMultiHashMap.TryGetNextValue(out foodTracker, ref iterator));
             }
         }
 
         /// <summary>
-        /// This method is used to move the creature or to eat energy from the current food object. If there is no
+        /// This method is used to move the creature or to eat energy from the closest food object. If there is no
         /// closest food found the creature will move along the current movement direction
         /// </summary>
         private float3 MoveAlongDirectionOrEat(ref CreatureComponent creature, ref FoodTracker closestFood,
@@ -167,14 +183,14 @@ namespace Creatures
             var newPosition = position;
             var sizeSquared = creature.Size * creature.Size;
 
-            if (creature.IsEating == false) 
+            if (creature.IsEating == false)
             {
                 if (direction.Equals(float2.zero)) creature.MovementDirection = GetRandomMovementDirection();
 
                 newPosition = position + new float3(direction, 0.0f) * (creature.MovementSpeed * DeltaTime);
                 var speedSquared = creature.MovementSpeed * creature.MovementSpeed;
                 creature.Energy -= (sizeSquared + speedSquared) * CreatureComponent.EnergyLossPerStep;
-                
+
                 if (IsPointInsideWorldArea(newPosition.xy) == false)
                 {
                     var normal = GetReflectionNormal(newPosition.xy);
@@ -185,9 +201,9 @@ namespace Creatures
             {
                 if (closestFood.ID == 0) return newPosition;
 
-                var desiredEnergy = CreatureComponent.EnergyAmountPerBite * sizeSquared;
+                var desiredEnergy = CreatureComponent.EnergyGainPerBite * sizeSquared;
 
-                // If food contains less energy than our creature can eat per bite we have to allow creature
+                // If the closestFood contains less energy than our creature can eat per bite we have to allow creature
                 // to eat only available food energy
                 float eatenEnergy = closestFood.Energy < desiredEnergy ? closestFood.Energy : desiredEnergy;
                 eatenEnergy = math.max(0.0f, eatenEnergy);
@@ -195,6 +211,7 @@ namespace Creatures
                 creature.Energy += eatenEnergy;
                 closestFood.Energy -= eatenEnergy;
 
+                //
                 if (closestFood.Energy <= MinFoodEnergy)
                 {
                     creature.IsEating = false;
@@ -232,7 +249,6 @@ namespace Creatures
         /// area and float2.zero vector otherwise.
         /// </summary>
         /// <param name="point">Point for which we have to find a normal vector</param>
-        /// <returns></returns>
         private float2 GetReflectionNormal(float2 point)
         {
             float2 normal = point.x > WorldArea.z ? new float2(-1, 0) : float2.zero;
@@ -241,6 +257,9 @@ namespace Creatures
             return point.y < WorldArea.y ? new float2(0, 1) : normal;
         }
 
+        /// <summary>
+        /// This method calculates and returns some random movement direction
+        /// </summary>
         private float2 GetRandomMovementDirection()
         {
             return RandomGenerator.NextFloat2Direction();

@@ -63,9 +63,8 @@ namespace Managers
         }
 
         /// <summary>
-        /// Sets the disired time factor for settings and UI
+        /// Sets the specified value as the actual time factor of simulation and UI
         /// </summary>
-        /// <param name="value"></param>
         private void SetTimeFactor(float value)
         {
             World.Instance.SetSimulationTimeFactor((int) value);
@@ -75,12 +74,11 @@ namespace Managers
         }
 
         /// <summary>
-        /// Updates the population UI text with the specified number
+        /// Updates the population UI text with the specified populationNumber
         /// </summary>
-        /// <param name="number">Population number</param>
-        public void SetPopulationNumberText(int number)
+        public void SetPopulationNumberText(int populationNumber)
         {
-            populationNumberText.text = number.ToString();
+            populationNumberText.text = populationNumber.ToString();
         }
 
         public void SetSimulationManagersTime(float foodManagerTime, float creatureManagerTime)

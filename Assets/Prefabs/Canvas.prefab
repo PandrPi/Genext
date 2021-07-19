@@ -913,6 +913,7 @@ GameObject:
   - component: {fileID: 3539446262043102431}
   - component: {fileID: 96346386535072818}
   - component: {fileID: 8365044799640272517}
+  - component: {fileID: 6243097601190149222}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1002,6 +1003,31 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &6243097601190149222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6666878536736186834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d646dc90f2dc174fb69752ba913c957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timeFactorSlider: {fileID: 1863602673653396132}
+  timeFactorText: {fileID: 6627766792528641390}
+  populationNumberText: {fileID: 488917627594482842}
+  pauseOrPlayButton: {fileID: 3928556718339660396}
+  pauseOrPlayButtonText: {fileID: 8396709247766304113}
+  averageSpeedText: {fileID: 0}
+  averageSizeText: {fileID: 0}
+  averageEnergyText: {fileID: 0}
+  averageEnergyToRPText: {fileID: 0}
+  averageEnergyPBText: {fileID: 0}
+  averageDieChanceText: {fileID: 0}
+  averageViewRadiusText: {fileID: 0}
+  simulationTimeText: {fileID: 6666642446798897999}
 --- !u!1 &6841559489293598497
 GameObject:
   m_ObjectHideFlags: 0
