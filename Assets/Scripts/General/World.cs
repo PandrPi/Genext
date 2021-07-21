@@ -25,13 +25,13 @@ namespace General
         public static World Instance;
         public Vector2 worldSize = new Vector2(128, 64);
 
-        [Header("Food Parameters")] [SerializeField, Range(1, 4096)]
+        [Header("Food Parameters")] [SerializeField, Range(1, 16384)]
         private int foodsNumber;
 
         [SerializeField] private Mesh foodMesh;
         [SerializeField] private Material foodMaterial;
 
-        [Header("Creature Parameters")] [SerializeField, Range(1, 4096)]
+        [Header("Creature Parameters")] [SerializeField, Range(1, 16384)]
         private int creaturesNumber;
 
         [SerializeField] private Mesh creatureMesh;
@@ -47,6 +47,8 @@ namespace General
 
         public static float4 WorldAreaRect;
         private const string WorldAreaTransformName = "World Area";
+        private const string CameraSizeShaderVariableName = "_CameraSize";
+        private static readonly int CameraSize = Shader.PropertyToID(CameraSizeShaderVariableName);
 
         private void Awake()
         {
@@ -62,7 +64,7 @@ namespace General
 
             worldArea.localScale = new Vector3(worldSize.x, worldSize.y, 1.0f);
             WorldAreaRect = new float4(-worldSize.x, -worldSize.y, worldSize.x, worldSize.y) * 0.5f;
-            worldAreaMaterial.mainTextureScale = new Vector2(worldSize.x, worldSize.y);
+            // worldAreaMaterial.mainTextureScale = new Vector2(worldSize.x, worldSize.y);
 
             FoodManagementSystem.Instance.Initialize(foodsNumber, worldSize, foodMesh, foodMaterial, quadrantCellSize);
             CreatureManagementSystem.Instance.Initialize(creaturesNumber, creatureMesh, creatureMaterial);
@@ -71,11 +73,12 @@ namespace General
             CreatureManagementSystem.Instance.InitializeCreature(creatureEntity);
         }
 
-        private void FixedUpdate()
+        private void Update()
         {
-            var deltaTime = Time.fixedDeltaTime;
+            var deltaTime = Time.deltaTime;
             float foodManagerTime = 0;
             float creatureManagerTime = 0;
+            var totalTimeStart = Time.realtimeSinceStartup;
 
             // Process our simulation simulationTimeFactor times! Such a way of game speed up is much faster than
             // changing Time.timeScale property but gives us almost the same result
@@ -90,7 +93,9 @@ namespace General
                 creatureManagerTime += Time.realtimeSinceStartup - start1;
             }
 
-            UIManager.Instance.SetSimulationExecutionTimeForUI(foodManagerTime, creatureManagerTime);
+            var totalSimulationTime = Time.realtimeSinceStartup - totalTimeStart;
+            UIManager.Instance.SetSimulationExecutionTimeForUI(foodManagerTime, creatureManagerTime,
+                totalSimulationTime);
 
             if (Input.GetMouseButtonDown(0))
             {
@@ -99,6 +104,15 @@ namespace General
                     DisplayClickedFoodOrCreature();
                 }
             }
+
+            // Send orthographicSize to the shader of our worldAreaMaterial
+            worldAreaMaterial.SetFloat(CameraSize, mainCamera.orthographicSize);
+        }
+
+        private void OnDestroy()
+        {
+            const float defaultCameraSize = 5.0f;
+            worldAreaMaterial.SetFloat(CameraSize, defaultCameraSize);
         }
 
         /// <summary>

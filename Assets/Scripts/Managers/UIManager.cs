@@ -17,12 +17,16 @@ namespace Managers
         [SerializeField] private Text pauseOrPlayButtonText;
 
         // The "St" addition in variable names means that these variable are used to display statistics
-        [Header("Food Statistics"), SerializeField] private GameObject foodStatsWindow;
+        [Header("Food Statistics"), SerializeField]
+        private GameObject foodStatsWindow;
+
         [SerializeField] private Button foodStatsWindowCloseButtonSt;
         [SerializeField] private Text foodIDTextSt;
         [SerializeField] private Text foodEnergyTextSt;
 
-        [Header("Creature Statistics"), SerializeField] private GameObject creatureStatsWindow;
+        [Header("Creature Statistics"), SerializeField]
+        private GameObject creatureStatsWindow;
+
         [SerializeField] private Button creatureStatsWindowCloseButtonSt;
         [SerializeField] private Text creatureIDTextSt;
         [SerializeField] private Text creatureMovementSpeedTextSt;
@@ -36,7 +40,7 @@ namespace Managers
 
         private const string PauseSimulationText = "S";
         private const string PlaySimulationText = "P";
-        private const string SimulationTimeFormat = "Food Instance: {0} ms; Creature Instance: {1} ms";
+        private const string SimulationTimeFormat = "Food Manager: {0} ms; Creature Manager: {1} ms; Total: {2} ms";
         private static readonly Vector2 PlaySimulationTextOffset = new Vector2(5, 0);
         private static readonly Vector2 PauseSimulationTextOffset = new Vector2(0.8f, 0);
 
@@ -99,15 +103,19 @@ namespace Managers
         /// </summary>
         /// <param name="foodManagerTime">Total execution time of the food manager</param>
         /// <param name="creatureManagerTime">Total execution time of the creature manager</param>
-        public void SetSimulationExecutionTimeForUI(float foodManagerTime, float creatureManagerTime)
+        /// <param name="totalSimulationTime">Total execution time of all managers</param>
+        public void SetSimulationExecutionTimeForUI(float foodManagerTime, float creatureManagerTime,
+            float totalSimulationTime)
         {
             const float conversionMultiplier = 1000.0f;
             const int roundToDigits = 3;
             // Multiply numbers by 1000f to convert them from seconds to ms and round them to only 3 digits
             foodManagerTime = (float) Math.Round(foodManagerTime * conversionMultiplier, roundToDigits);
             creatureManagerTime = (float) Math.Round(creatureManagerTime * conversionMultiplier, roundToDigits);
+            totalSimulationTime = (float) Math.Round(totalSimulationTime * conversionMultiplier, roundToDigits);
 
-            simulationTimeText.text = string.Format(SimulationTimeFormat, foodManagerTime, creatureManagerTime);
+            simulationTimeText.text = string.Format(SimulationTimeFormat, foodManagerTime, creatureManagerTime,
+                totalSimulationTime);
         }
 
         /// <summary>
@@ -134,7 +142,7 @@ namespace Managers
             creatureEnergyTextSt.text = ((int) creature.Energy).ToString();
             creatureEnergyAmountForReproductionTextSt.text = ((int) creature.EnergyAmountForReproduction).ToString();
             creatureDieChanceTextSt.text = creature.DieChance.ToString(twoDigitsFormat);
-            
+
             creatureStatsWindow.SetActive(true);
         }
 
@@ -147,7 +155,7 @@ namespace Managers
 
             foodIDTextSt.text = food.ID.ToString();
             foodEnergyTextSt.text = ((int) food.Energy).ToString();
-            
+
             foodStatsWindow.SetActive(true);
         }
     }

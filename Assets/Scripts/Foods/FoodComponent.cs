@@ -31,7 +31,7 @@ namespace Foods
 
         public const float InitialEnergy = 500.0f;
         public const float ParameterRandomRange = 0.2f;
-        public const float TimeToRegrowth = 1.0f;
+        public const float TimeToRegrowth = 30.0f;
         public const float MinDistanceToEat = 0.5f; // Represents the minimal distance at which the food can be eaten
         public static readonly float3 EatenPosition = new float3(1e+6f, 1e+6f, 0.0f);
 

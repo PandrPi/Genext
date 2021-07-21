@@ -69,6 +69,7 @@
      <Compile Include="Assets\Scripts\Managers\UIManager.cs" />
      <Compile Include="Assets\Scripts\MathHelper.cs" />
      <Compile Include="Assets\Scripts\Player\CameraControl.cs" />
+     <None Include="Assets\Resources\Shaders\GroundShader.shader" />
      <None Include="Assets\Resources\Shaders\SpriteShaderECS.shader" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>E:/Unity Projects/Genext/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
